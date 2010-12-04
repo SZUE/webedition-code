@@ -821,7 +821,7 @@ function we_tag_ifSidebar($attribs, $content){
 }
 
 function we_tag_ifNotSidebar($attribs, $content){
-	return !we_tag_ifSidebar($attribs, $content);
+	return !we_tag('ifSidebar',$attribs, $content);
 }
 
 //
@@ -850,7 +850,7 @@ function we_tag_ifEditmode($attribs, $content){
 }
 
 function we_tag_ifSeeMode($attribs, $content){	
-	if (we_tag_ifWebEdition($attribs, $content)) {
+	if (we_tag('ifWebEdition',$attribs, $content)) {
 		return (isset($_SESSION["we_mode"]) && $_SESSION["we_mode"] == "seem");
 	} else {
 		return false;
@@ -862,7 +862,7 @@ function we_tag_ifTdEmpty($attribs, $content){
 }
 
 function we_tag_ifTdNotEmpty($attribs, $content){
-	return !we_tag_ifTdEmpty($attribs, $content);
+	return !we_tag('ifTdEmpty',$attribs, $content);
 }
 
 function we_tag_ifTop($attribs, $content){
@@ -870,8 +870,8 @@ function we_tag_ifTop($attribs, $content){
 }
 
 function we_tag_ifNotSeeMode($attribs, $content){
-	if (we_tag_ifWebEdition($attribs, $content)) {
-		return !(we_tag_ifSeeMode($attribs, $content));
+	if (we_tag('ifWebEdition',$attribs, $content)) {
+		return !(we_tag('ifSeeMode',$attribs, $content));
 	} else {
 		return true;
 	}
@@ -989,8 +989,8 @@ function we_tag_ifNotDoctype($attribs,$content){
 	return !we_tag('ifDoctype',$attribs,$content);
 }
 
-function we_tag_ifNotEditmode($attribs, $content){
-	!we_tag('ifEditmode',$attribs,$content);
+function we_tag_ifNotEditmode($attribs, $content) {
+	return !we_tag('ifEditmode', $attribs, $content);
 }
 
 function we_tag_ifNotEmpty($attribs, $content){
@@ -1113,7 +1113,7 @@ function we_tag_ifVotingFieldNotEmpty($attribs,$content) {
 }
 
 function we_tag_ifNotWebEdition($attribs, $content){
-	return !$GLOBALS["WE_MAIN_DOC"]->InWebEdition;
+	return !we_tag('ifWebEdition',$attribs, $content);
 }
 
 function we_tag_ifNotWorkspace($attribs, $content){
@@ -1149,8 +1149,7 @@ function we_tag_ifUserInputEmpty($attribs, $content){
 	return !we_isUserInputNotEmpty($attribs);
 }
 
-function we_tag_ifUserInputNotEmpty($attribs, $content)
-{
+function we_tag_ifUserInputNotEmpty($attribs, $content){
 	$foo = attributFehltError($attribs, "match", "ifUserInputNotEmpty");
 	if ($foo) {
 		print($foo);
@@ -1213,11 +1212,3 @@ function we_tag_listviewStart($attribs, $content){
 function we_tag_makeMail($attribs, $content){
 	return "";
 }
-
-function we_tag_next($attribs, $content){
-	if (isset($GLOBALS["_we_voting_list"])){
-		return $GLOBALS["_we_voting_list"]->getNextLink($attribs);
-	}else{
-		return $GLOBALS["lv"]->getNextLink($attribs);
-	}
-}?>

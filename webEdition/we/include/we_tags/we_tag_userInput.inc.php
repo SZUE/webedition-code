@@ -1,4 +1,23 @@
 <?php
+/**
+ * webEdition CMS
+ *
+ * This source is part of webEdition CMS. webEdition CMS is
+ * free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 3 of the License, or
+ * any later version.
+ *
+ * The GNU General Public License can be found at
+ * http://www.gnu.org/copyleft/gpl.html.
+ * A copy is found in the textfile
+ * webEdition/licenses/webEditionCMS/License.txt
+ *
+ * @category   webEdition
+ * @package    webEdition_base
+ * @license    http://www.gnu.org/copyleft/gpl.html  GPL
+ */
+
 function we_tag_userInput($attribs, $content){
 	$foo = attributFehltError($attribs, "name", "userInput");
 	if ($foo)
@@ -623,6 +642,8 @@ function we_tag_userInput($attribs, $content){
 				return we_getInputCheckboxField($fieldname, $content, $atts);
 			case "date" :
 				$currentdate = we_getTagAttribute("currentdate", $attribs, "", true);
+				$minyear = we_getTagAttribute("minyear", $attribs, "");
+				$maxyear = we_getTagAttribute("maxyear", $attribs, "");
 				if ($currentdate) {
 					$orgVal = time();
 				}
@@ -641,12 +662,15 @@ function we_tag_userInput($attribs, $content){
 							$format,
 							'',
 							'',
-							$xml);
+							$xml,
+							$minyear,
+							$maxyear);
 				}
 				break;
 			case "country":
 				$newAtts = removeAttribs($attribs, array('wysiwyg','commands','pure', 'type', 'value', 'checked', 'autobr', 'name', 'values', 'hidden', 'editable', 'format', 'property', 'rows', 'cols','fontnames','bgcolor', 'width', 'height', 'maxlength'));
 				$docAttr = we_getTagAttribute("doc", $attribs, "self");
+				
 				$doc = we_getDocForTag($docAttr);
 				$lang=$doc->Language;
 				$langcode= substr($lang,0,2);
@@ -911,4 +935,4 @@ function we_tag_userInput($attribs, $content){
 				return we_getInputTextInputField($fieldname, $orgVal, $atts);
 		}
 	}
-}?>
+}
