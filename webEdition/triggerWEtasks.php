@@ -21,14 +21,12 @@
 require_once($_SERVER["DOCUMENT_ROOT"]."/webEdition/we/include/we.inc.php");
 
 if(defined("SCHEDULE_TABLE")) {
-    trigger_schedule();
+    we_schedpro::trigger_schedule();
 
 }
 if(defined("WORKFLOW_TABLE")){
-	include_once($_SERVER["DOCUMENT_ROOT"]."/webEdition/we/include/we_modules/workflow/weWorkflowUtility.php");
-	echo weWorkflowUtility::forceOverdueDocuments();
+	echo we_workflow_utility::forceOverdueDocuments();
 }
-include_once ($_SERVER['DOCUMENT_ROOT'] . '/webEdition/we/include/we_classes/tools/weToolLookup.class.php');
 $_tooltasks = weToolLookup::getExternTriggeredTasks();
 foreach($_tooltasks as $task){
 	include($task);

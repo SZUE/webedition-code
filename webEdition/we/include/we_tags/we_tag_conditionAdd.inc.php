@@ -1,10 +1,11 @@
 <?php
+
 /**
  * webEdition CMS
  *
- * $Rev: 2788 $
- * $Author: mokraemer $
- * $Date: 2011-04-21 02:20:09 +0200 (Do, 21. Apr 2011) $
+ * $Rev$
+ * $Author$
+ * $Date$
  *
  * This source is part of webEdition CMS. webEdition CMS is
  * free software; you can redistribute it and/or modify
@@ -21,21 +22,20 @@
  * @package    webEdition_base
  * @license    http://www.gnu.org/copyleft/gpl.html  GPL
  */
-
-function we_tag_conditionAdd($attribs, $content){
-	$foo = attributFehltError($attribs, "field", "conditionAdd");
-	if ($foo)
+function we_tag_conditionAdd($attribs){
+	if(($foo = attributFehltError($attribs, 'field', __FUNCTION__))){
 		return $foo;
+	}
 
 	// initialize possible Attributes
-	$field = we_getTagAttribute("field", $attribs);
-	$value = we_getTagAttribute("value", $attribs);
-	$compare = we_getTagAttribute("compare", $attribs, "=");
-	$var = we_getTagAttribute("var", $attribs);
-	$type = we_getTagAttribute("type", $attribs);
-	$property = we_getTagAttribute("property", $attribs, "", true);
-	$exactmatch = we_getTagAttribute("exactmatch", $attribs, "", true);
-	$docAttr = we_getTagAttribute("doc", $attribs);
+	$field = weTag_getAttribute('field', $attribs);
+	$value = weTag_getAttribute('value', $attribs);
+	$compare = weTag_getAttribute('compare', $attribs, '=');
+	$var = weTag_getAttribute('var', $attribs);
+	$type = weTag_getAttribute('type', $attribs);
+	$property = weTag_getAttribute('property', $attribs, false, true);
+	$exactmatch = weTag_getAttribute('exactmatch', $attribs, false, true);
+	$docAttr = weTag_getAttribute('doc', $attribs);
 	// end initialize possible Attributes
 
 
@@ -43,56 +43,55 @@ function we_tag_conditionAdd($attribs, $content){
 	$value = str_replace('&lt;', '<', $value);
 
 	$regs = array();
-	if ($var && $compare == "like") {
-		if (ereg('^(%)?([^%]+)(%)?$', $var, $regs)) {
+	if($var && $compare == 'like'){
+		if(preg_match('/^(%)?([^%]+)(%)?$/', $var, $regs)){
 			$var = $regs[2];
 		}
 	}
-	switch (strtolower($type)) {
-		case "now" :
+	switch(strtolower($type)){
+		case 'now' :
 			$value = time();
-		case "sessionfield" :
-			if ($var && isset($_SESSION["webuser"][$var])) {
-				$value = $_SESSION["webuser"][$var];
+		case 'sessionfield' :
+			if($var && isset($_SESSION['webuser'][$var])){
+				$value = $_SESSION['webuser'][$var];
 			}
 			break;
-		case "document" :
-			if ($var) {
+		case 'document' :
+			if($var){
 				$doc = we_getDocForTag($docAttr, false);
-				if ($property) {
-					eval('$value = $doc->' . $var . ';');
-				} else {
+				if($property){
+					$value = $doc->$var;
+				} else{
 					$value = $doc->getElement($var);
 				}
 			}
 			break;
-		case "request" :
-			if ($var && isset($_REQUEST[$var])) {
+		case 'request' :
+			if($var && isset($_REQUEST[$var])){
 				$value = $_REQUEST[$var];
 			}
 			break;
 		default :
-			if ($var && isset($GLOBALS[$var])) {
+			if($var && isset($GLOBALS[$var])){
 				$value = $GLOBALS[$var];
 			}
 	}
-	if($exactmatch && defined('DB_COLLATION') && DB_COLLATION!=''){
-		if(strpos(DB_COLLATION,'latin1') !== false ) {
-			$compare = "COLLATE latin1_bin ".$compare;
-		} elseif(strpos(DB_COLLATION,'utf') !== false) {
-			$compare = "COLLATE utf8_bin ".$compare;
+	if($exactmatch && defined('DB_COLLATION') && DB_COLLATION != ''){
+		if(strpos(DB_COLLATION, 'latin1') !== false){
+			$compare = 'COLLATE latin1_bin ' . $compare;
+		} elseif(strpos(DB_COLLATION, 'utf') !== false){
+			$compare = 'COLLATE utf8_bin ' . $compare;
 		}
-
 	}
-	$value = (isset($regs[1]) ? $regs[1] : "") . $value . (isset($regs[3]) ? $regs[3] : "");
+	$value = (isset($regs[1]) ? $regs[1] : '') . $value . (isset($regs[3]) ? $regs[3] : '');
 
-	if (strlen($field) && isset($GLOBALS["we_lv_conditionName"]) && isset($GLOBALS[$GLOBALS["we_lv_conditionName"]])) {
-		$GLOBALS[$GLOBALS["we_lv_conditionName"]] .= " ($field $compare '" . addslashes($value) . "') ";
-	} else {
-		if (eregi('^(.*)AND ?$', $GLOBALS[$GLOBALS["we_lv_conditionName"]])) {
-			$GLOBALS[$GLOBALS["we_lv_conditionName"]] .= "1 ";
-		} else {
-			$GLOBALS[$GLOBALS["we_lv_conditionName"]] .= "0 ";
+	if(strlen($field) && isset($GLOBALS['we_lv_conditionName']) && isset($GLOBALS[$GLOBALS['we_lv_conditionName']])){
+		$GLOBALS[$GLOBALS['we_lv_conditionName']] .= '(' . $field . ' ' . $compare . ' "' . $GLOBALS['DB_WE']->escape($value) . '") ';
+	} else{
+		if(preg_match('/^(.*)AND ?$/', $GLOBALS[$GLOBALS['we_lv_conditionName']])){
+			$GLOBALS[$GLOBALS['we_lv_conditionName']] .= '1 ';
+		} else{
+			$GLOBALS[$GLOBALS['we_lv_conditionName']] .= '0 ';
 		}
 	}
 	return '';

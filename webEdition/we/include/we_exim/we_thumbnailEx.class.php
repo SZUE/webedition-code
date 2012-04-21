@@ -1,4 +1,5 @@
 <?php
+
 /**
  * webEdition CMS
  *
@@ -18,29 +19,24 @@
  * @license    http://www.gnu.org/copyleft/gpl.html  GPL
  */
 
-include_once($_SERVER['DOCUMENT_ROOT'] . '/webEdition/we/include/we_classes/modules/weModelBase.php');
+class we_thumbnailEx extends weModelBase{
 
+	var $table = THUMBNAILS_TABLE;
+	var $ClassName = __CLASS__;
+	var $Table = THUMBNAILS_TABLE;
+	var $ContentType = 'weThumbnail';
 
-	class we_thumbnailEx extends weModelBase  {
-
-		var $table = THUMBNAILS_TABLE;
-		var $ClassName = 'we_thumbnailEx';
-		var $Table = THUMBNAILS_TABLE;
-		var $ContentType = 'weThumbnail';
-
-
-
-		function we_thumbnailEx() {
-			parent::weModelBase(THUMBNAILS_TABLE);
-		}
-
-		function we_load($id) {
-			parent::load($id);
-			$this->ContentType = 'weThumbnail';
-		}
-
-		function we_save() {
-			parent::save($this->ID ? false : true);
-		}
-
+	function __construct(){
+		parent::__construct(THUMBNAILS_TABLE);
 	}
+
+	function we_load($id){
+		parent::load($id);
+		$this->ContentType = 'weThumbnail';
+	}
+
+	function we_save(){
+		parent::save($this->ID ? false : true);
+	}
+
+}

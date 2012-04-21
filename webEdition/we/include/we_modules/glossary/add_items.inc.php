@@ -367,7 +367,6 @@ if($_REQUEST['we_cmd'][1] == 'frameset'){
 		$Modes['acronym'] = g_l('modules_glossary', '[acronym]');
 		$Modes['foreignword'] = g_l('modules_glossary', '[foreignword]');
 		$Modes['textreplacement'] = g_l('modules_glossary', '[textreplacement]');
-		$Modes['textreplacement'] = $GLOBALS['l_glossary']['textreplacement'];
 	}
 	if(we_hasPerm("EDIT_GLOSSARY_DICTIONARY")){
 		$Modes['exception'] = g_l('modules_glossary', '[to_exceptionlist]');

@@ -18,37 +18,28 @@
  * @license    http://www.gnu.org/copyleft/gpl.html  GPL
  */
 
-include_once ($_SERVER["DOCUMENT_ROOT"] . "/webEdition/we/include/" . "we.inc.php");
-include_once ($_SERVER["DOCUMENT_ROOT"] . "/webEdition/we/include/" . "we_html_tools.inc.php");
-include_once ($_SERVER["DOCUMENT_ROOT"] . "/webEdition/we/include/we_language/" . $GLOBALS["WE_LANGUAGE"] . "/we_class.inc.php");
-
-protect();
+we_html_tools::protect();
 $ok = false;
 
 if ($_SESSION["perms"]["ADMINISTRATOR"]) {
-	$we_transaction = (eregi("^([a-f0-9]){32}$",$_REQUEST["we_cmd"][1])?$_REQUEST["we_cmd"][1]:0);
+	$we_transaction = (preg_match('|^([a-f0-9]){32}$|i',$_REQUEST['we_cmd'][1])?$_REQUEST['we_cmd'][1]:0);
 	// init document
 	$we_dt = $_SESSION["we_data"][$we_transaction];
 
-	include ($_SERVER["DOCUMENT_ROOT"] . "/webEdition/we/include/" . "we_editors/we_init_doc.inc.php");
+	include ($_SERVER['DOCUMENT_ROOT'] . "/webEdition/we/include/we_editors/we_init_doc.inc.php");
 
 	$ok = $we_doc->changeTriggerIDRecursive();
 
 }
 
-htmlTop();
-?>
-<script language="JavaScript" type="text/javascript"><!--
-	<?php
+we_html_tools::htmlTop();
 
 	if ($ok) {
-		print we_message_reporting::getShowMessageCall($GLOBALS["l_we_class"]["grant_tid_ok"], WE_MESSAGE_NOTICE);
+		print we_html_element::jsElement(we_message_reporting::getShowMessageCall(g_l('weClass',"[grant_tid_ok]"), we_message_reporting::WE_MESSAGE_NOTICE));
 	} else {
-		print we_message_reporting::getShowMessageCall($GLOBALS["l_we_class"]["grant_tid_notok"], WE_MESSAGE_ERROR);
+		print we_html_element::jsElement(we_message_reporting::getShowMessageCall(g_l('weClass',"[grant_tid_notok]"), we_message_reporting::WE_MESSAGE_ERROR));
 	}
 	?>
-//-->
-</script>
 </head>
 
 <body>

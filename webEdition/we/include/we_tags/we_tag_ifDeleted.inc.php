@@ -1,6 +1,11 @@
 <?php
+
 /**
  * webEdition CMS
+ *
+ * $Rev$
+ * $Author$
+ * $Date$
  *
  * This source is part of webEdition CMS. webEdition CMS is
  * free software; you can redistribute it and/or modify
@@ -17,8 +22,7 @@
  * @package    webEdition_base
  * @license    http://www.gnu.org/copyleft/gpl.html  GPL
  */
-
-function we_tag_ifDeleted($attribs, $content){
-	$type = we_getTagAttribute('type', $attribs, 'document');
+function we_tag_ifDeleted($attribs){
+	$type = weTag_getAttribute('type', $attribs, 'document');
 	return isset($GLOBALS['we_' . $type . '_delete_ok']) && ($GLOBALS['we_' . $type . '_delete_ok'] == true);
 }

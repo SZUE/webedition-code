@@ -26,9 +26,6 @@ if(!preg_match('|^([a-f0-9]){32}$|i', $_REQUEST['we_cmd'][1])){
 }
 
 we_html_tools::protect();
-if (!eregi("^([a-f0-9]){32}$",$_REQUEST["we_cmd"][1])) {
-	exit();
-}
 
 we_html_tools::htmlTop();
 

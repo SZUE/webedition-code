@@ -1,10 +1,11 @@
 <?php
+
 /**
  * webEdition CMS
  *
- * $Rev: 2788 $
- * $Author: mokraemer $
- * $Date: 2011-04-21 02:20:09 +0200 (Do, 21. Apr 2011) $
+ * $Rev$
+ * $Author$
+ * $Date$
  *
  * This source is part of webEdition CMS. webEdition CMS is
  * free software; you can redistribute it and/or modify
@@ -21,10 +22,9 @@
  * @package    webEdition_base
  * @license    http://www.gnu.org/copyleft/gpl.html  GPL
  */
-
-function we_tag_conditionOr($attribs, $content){
-	if (isset($GLOBALS["we_lv_conditionName"]) && isset($GLOBALS[$GLOBALS["we_lv_conditionName"]])) {
-		$GLOBALS[$GLOBALS["we_lv_conditionName"]] .= " OR ";
+function we_tag_conditionOr(){
+	if(isset($GLOBALS['we_lv_conditionName']) && isset($GLOBALS[$GLOBALS['we_lv_conditionName']])){
+		$GLOBALS[$GLOBALS['we_lv_conditionName']] .= ' OR ';
 	}
-	return "";
+	return '';
 }

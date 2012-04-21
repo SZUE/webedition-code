@@ -47,7 +47,7 @@
 	function weCustomHook_customer_preSave($param) {
 		$hookHandler=$param['hookHandler'];
 		$data=$param['customer'];
-		$from=$param['from'];
+		$from=$param['from']; //tag,management
 		switch($param['type']){
 			case 'new':
 			case 'modify':

@@ -1,6 +1,11 @@
 <?php
+
 /**
  * webEdition CMS
+ *
+ * $Rev$
+ * $Author$
+ * $Date$
  *
  * This source is part of webEdition CMS. webEdition CMS is
  * free software; you can redistribute it and/or modify
@@ -17,16 +22,15 @@
  * @package    webEdition_base
  * @license    http://www.gnu.org/copyleft/gpl.html  GPL
  */
-
 function we_isUserInputNotEmpty($attribs){
-	$formname = we_getTagAttribute('formname', $attribs, 'we_global_form');
-	$match = we_getTagAttribute('match', $attribs,'',false,false,true);
+	$formname = weTag_getAttribute('formname', $attribs, 'we_global_form');
+	$match = weTag_getAttribute('match', $attribs);
 	return (isset($_REQUEST['we_ui_' . $formname][$match]) && strlen($_REQUEST['we_ui_' . $formname][$match]));
 }
 
-function we_tag_ifUserInputEmpty($attribs, $content){
-	$foo = attributFehltError($attribs, 'match', 'ifUserInputEmpty');
-	if ($foo) {
+function we_tag_ifUserInputEmpty($attribs){
+	$foo = attributFehltError($attribs, 'match', __FUNCTION__);
+	if($foo){
 		print($foo);
 		return '';
 	}

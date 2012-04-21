@@ -1,6 +1,11 @@
 <?php
+
 /**
  * webEdition CMS
+ *
+ * $Rev$
+ * $Author$
+ * $Date$
  *
  * This source is part of webEdition CMS. webEdition CMS is
  * free software; you can redistribute it and/or modify
@@ -17,13 +22,46 @@
  * @package    webEdition_base
  * @license    http://www.gnu.org/copyleft/gpl.html  GPL
  */
-
-function we_tag_ifIsDomain($attribs, $content){
-	$foo = attributFehltError($attribs, 'domain', 'ifIsDomain');
-	if ($foo) {
+function we_tag_ifIsDomain($attribs){
+	if(($foo = attributFehltError($attribs, 'domain', __FUNCTION__))){
 		print($foo);
-		return '';
+		return false;
 	}
-	$domain = we_getTagAttribute('domain', $attribs);
-	return (isset($GLOBALS['we_editmode']) && $GLOBALS['we_editmode']) || ($domain == $_SERVER['SERVER_NAME']);
+	if((isset($GLOBALS['we_editmode']) && $GLOBALS['we_editmode'])){
+		return true;
+	}
+
+	$domain = strtolower(weTag_getAttribute('domain', $attribs));
+	$domain = makeArrayFromCSV($domain);
+	$matchType = weTag_getAttribute('matchType', $attribs, 'exact');
+	$servername = strtolower($_SERVER['SERVER_NAME']);
+	switch($matchType){
+		case 'exact':
+			return in_array($servername, $domain);
+		case 'contains':
+			foreach($domain as $d){
+				if(strpos($servername, $d) !== FALSE){
+					return true;
+				}
+			}
+			return false;
+		case 'front':
+			foreach($domain as $d){
+				if(strpos($servername, $d) === 0){
+					return true;
+				}
+			}
+			return false;
+		case 'back':
+			$len = strlen($servername);
+			foreach($domain as $d){
+				$pos = strpos($servername, $d);
+				if($pos !== FALSE && ($pos + strlen($d)) == $len){
+					return true;
+				}
+			}
+			return false;
+		default:
+			return false;
+	}
 }
