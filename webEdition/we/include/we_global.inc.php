@@ -293,9 +293,19 @@ function getCurlHttp($server, $path, $files = array(), $header = false){
 		'status' => 0, // 0=ok otherwise error
 		'error' => '' // error string
 	);
-
+	$parsedurl = parse_url($server);
+	if(isset($parsedurl['scheme'])){
+		$protocol = $parsedurl['scheme'] . '://';
+	} else{
+		$protocol = 'http://';
+	}
+	if(isset($parsedurl['port'])){
+		$port = ':' . $parsedurl['port'];
+	} else{
+		$port = '';
+	}
 	$_pathA = explode('?', $path);
-	$_url = $protocol . '://' . $server . ':' . $port . $_pathA[0];
+	$_url = $protocol . $parsedurl['host'] . $port . $_pathA[0];
 	$_params = array();
 
 	$_session = curl_init();
@@ -1477,12 +1487,12 @@ function we_convertIniSizes($in){
 	return intval($in);
 }
 
-function we_getDocumentByID($id, $includepath = '', $db = '', &$charset = ''){
-	if(!$db){
-		$db = new DB_WE();
+function we_getDocumentByID($id, $includepath = '', $we_getDocumentByIDdb = '', &$charset = ''){
+	if(!$we_getDocumentByIDdb){
+		$we_getDocumentByIDdb = new DB_WE();
 	}
 	// look what document it is and get the className
-	$clNm = f('SELECT ClassName FROM ' . FILE_TABLE . ' WHERE ID=' . intval($id), 'ClassName', $db);
+	$clNm = f('SELECT ClassName FROM ' . FILE_TABLE . ' WHERE ID=' . intval($id), 'ClassName', $we_getDocumentByIDdb);
 
 	// init Document
 	if(isset($GLOBALS['we_doc'])){
@@ -1903,19 +1913,14 @@ function we_writeLanguageConfig($default, $available = array()){
 		$locales .= "	'" . $Locale . "',\n";
 	}
 
-	$file = WE_INCLUDES_PATH . 'conf/we_conf_language.inc.php';
-	$fh = fopen($file, 'w+');
-	if(!$fh){
-		return false;
-	}
-	fputs($fh, '<?php
+	return weFile::save(WE_INCLUDES_PATH . 'conf/we_conf_language.inc.php', '<?php
 $GLOBALS["weFrontendLanguages"] = array(
 ' . $locales . '
 );
 
 $GLOBALS["weDefaultFrontendLanguage"] = "' . $default . '";'
+			, 'w+'
 	);
-	return fclose($fh);
 }
 
 function we_filenameNotValid($filename){
@@ -2075,7 +2080,7 @@ function we_templateInit(){
 		}
 		//check for Trigger
 		if(defined('SCHEDULE_TABLE') && (!$GLOBALS['WE_MAIN_DOC']->InWebEdition) &&
-			(defined('SCHEUDLER_TRIGGER') && SCHEUDLER_TRIGGER == SCHEDULER_TRIGGER_PREDOC) &&
+			(defined('SCHEDULER_TRIGGER') && SCHEDULER_TRIGGER == SCHEDULER_TRIGGER_PREDOC) &&
 			(!isset($GLOBALS['we']['backVars']) || (isset($GLOBALS['we']['backVars']) && count($GLOBALS['we']['backVars']) == 0)) //on first call this variable is unset, so we're not inside an include
 		){
 			we_schedpro::trigger_schedule();
@@ -2127,8 +2132,6 @@ function we_templateHead(){
 		print STYLESHEET_BUTTONS_ONLY . SCRIPT_BUTTONS_ONLY;
 		print we_html_element::jsScript(JS_DIR . 'windows.js');
 		include_once($_SERVER['DOCUMENT_ROOT'] . '/webEdition/we/include/we_editors/we_editor_script.inc.php');
-	} else if(defined('WE_ECONDA_STAT') && defined('WE_ECONDA_PATH') && WE_ECONDA_STAT && WE_ECONDA_PATH != '' && !$GLOBALS['we_doc']->InWebEdition){
-		include_once($_SERVER['DOCUMENT_ROOT'] . '/webEdition/we/include/weTracking/econda/weEcondaImplementHeader.inc.php');
 	}
 }
 
@@ -2143,10 +2146,6 @@ function we_templatePreContent(){
 function we_templatePostContent(){
 	if(isset($GLOBALS['we_editmode']) && $GLOBALS['we_editmode'] && (--$GLOBALS['we_templatePreContent']) == 0){
 		print '</form>';
-	} else{
-		if(defined('WE_ECONDA_STAT') && defined('WE_ECONDA_PATH') && WE_ECONDA_STAT && WE_ECONDA_PATH != '' && !$GLOBALS['we_doc']->InWebEdition){
-			include_once($_SERVER['DOCUMENT_ROOT'] . '/webEdition/we/include/weTracking/econda/weEcondaImplement.inc.php');
-		}
 	}
 }
 
@@ -2159,7 +2158,7 @@ function we_templatePost(){
 	}
 	//check for Trigger
 	if(defined('SCHEDULE_TABLE') && (!$GLOBALS['WE_MAIN_DOC']->InWebEdition) &&
-		((defined('SCHEUDLER_TRIGGER') && SCHEUDLER_TRIGGER == SCHEDULER_TRIGGER_POSTDOC) || !defined('SCHEUDLER_TRIGGER')) &&
+		((defined('SCHEDULER_TRIGGER') && SCHEDULER_TRIGGER == SCHEDULER_TRIGGER_POSTDOC) || !defined('SCHEDULER_TRIGGER')) &&
 		(!isset($GLOBALS['we']['backVars']) || (isset($GLOBALS['we']['backVars']) && count($GLOBALS['we']['backVars']) == 0))//not inside an included Doc
 	){ //is set to Post or not set (new default)
 		we_schedpro::trigger_schedule();

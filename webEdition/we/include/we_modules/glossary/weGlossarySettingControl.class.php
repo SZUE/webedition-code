@@ -35,9 +35,9 @@ class weGlossarySettingControl{
 
 				case "save_glossary_setting":
 					if($this->saveSettings()){
-						$html .= "<script type=\"text/javascript\">top.close();" . we_message_reporting::getShowMessageCall(g_l('modules_glossary', '[preferences_saved]'), we_message_reporting::WE_MESSAGE_NOTICE) . "</script>";
+						$html .= we_html_element::jsElement(we_message_reporting::getShowMessageCall(g_l('modules_glossary', '[preferences_saved]'), we_message_reporting::WE_MESSAGE_NOTICE));
 					} else{
-						$html .= "<script type=\"text/javascript\">" . we_message_reporting::getShowMessageCall(g_l('modules_glossary', '[preferences_not_saved]'), we_message_reporting::WE_MESSAGE_ERROR) . "</script>";
+						$html .= we_html_element::jsElement(we_message_reporting::getShowMessageCall(g_l('modules_glossary', '[preferences_not_saved]'), we_message_reporting::WE_MESSAGE_ERROR));
 					}
 					break;
 			}
@@ -77,12 +77,7 @@ class weGlossarySettingControl{
 EOF;
 
 		$configFile = $_SERVER['DOCUMENT_ROOT'] . "/webEdition/we/include/we_modules/glossary/we_conf_glossary_settings.inc.php";
-		$fh = fopen($configFile, "w+");
-		if(!$fh){
-			return false;
-		}
-		fputs($fh, $code);
-		return fclose($fh);
+		return weFile::save($configFile, $code, 'w+');
 	}
 
 }

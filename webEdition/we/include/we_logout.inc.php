@@ -29,7 +29,7 @@ if(str_replace(dirname($_SERVER['SCRIPT_NAME']), '', $_SERVER['SCRIPT_NAME']) ==
 $DB_WE->query('DELETE FROM ' . LOCK_TABLE . ' WHERE UserID=' . intval($_SESSION["user"]["ID"]) . ' AND sessionID="' . session_id() . '"');
 //FIXME: table is set to false value, if 2 sessions are open; but this is updated shortly - so ignore it now
 //TODO: update to time if still locked files open
-$DB_WE->query("UPDATE " . USER_TABLE . " SET Ping=0 WHERE ID=" . intval($_SESSION["user"]["ID"]));
+$DB_WE->query('UPDATE ' . USER_TABLE . ' SET Ping=0 WHERE ID=' . intval($_SESSION["user"]["ID"]));
 
 cleanTempFiles(true);
 
@@ -39,13 +39,13 @@ if(isset($_SESSION["prefs"]["userID"])){ //	bugfix 2585, only update prefs, when
 
 //	getJSCommand
 if(isset($_SESSION["SEEM"]["startId"])){ // logout from webEdition opened with tag:linkToSuperEasyEditMode
-	$_path = $_SESSION["SEEM"]["startPath"];
-
-	while(list($name, $val) = each($_SESSION)) {
-		if($name != "webuser"){
-			unset($_SESSION[$name]);
+	$keys = array_keys($_SESSION);
+	foreach($keys as $key){
+		if($key != "webuser"){
+			unset($_SESSION[$key]);
 		}
 	}
+	$_path = $_SESSION["SEEM"]["startPath"];
 } else{ //	normal logout from webEdition.
 	unset($_SESSION["user"]);
 	if(isset($_SESSION['weS'])){
@@ -54,11 +54,28 @@ if(isset($_SESSION["SEEM"]["startId"])){ // logout from webEdition opened with t
 	$_path = WEBEDITION_DIR;
 }
 
-echo we_html_element::jsElement('
-for(i=0;i<top.jsWindow_count;i++){
-	eval("var obj=top.jsWindow"+i+"Object");
-	try{
-		obj.close();
-	}catch(err){}
+if(isset($_SESSION)){
+	while(list($name, $val) = each($_SESSION)) {
+		unset($_SESSION[$name]);
+	}
 }
-top.location.replace("' . $_path . '");');
+$_SESSION = array();
+
+if(!isset($isIncluded) || !$isIncluded){
+echo we_html_element::jsElement('
+	for(i=0;i<top.jsWindow_count;i++){
+		eval("var obj=top.jsWindow"+i+"Object");
+		try{
+			obj.close();
+		}catch(err){}
+	}
+
+	if(top.opener){ // we was opened in popup
+		top.opener.location.replace("' . $_path . '");
+		top.close();
+		top.opener.focus();
+	} else{
+		top.location.replace("' . $_path . '");
+	}
+');
+}

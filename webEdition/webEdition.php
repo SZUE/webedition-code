@@ -458,9 +458,9 @@ switch (arguments[0]) {
 		break;
 <?php
 //	In we.inc.php all names of the installed modules have already been searched
-//	so we only have to use the array $_we_active_integrated_modules
+//	so we only have to use the array $GLOBALS['_we_active_integrated_modules']
 
-foreach($_we_active_integrated_modules as $mod){
+foreach($GLOBALS['_we_active_integrated_modules'] as $mod){
 
 	if(file_exists($_SERVER['DOCUMENT_ROOT'] . "/webEdition/we/include/we_modules/" . $mod . "/we_webEditionCmd_" . $mod . ".inc.php")){
 
@@ -709,8 +709,8 @@ if(!empty($_jsincludes)){
 						case "dologout":
 							// before the command 'logout' is executed, ask if unsaved changes should be saved
 							if ( top.weEditorFrameController.doLogoutMultiEditor() ) {
+								regular_logout = true;
 								we_cmd('logout');
-
 							}
 							break;
 						case "exit_multi_doc_question":
@@ -1452,7 +1452,7 @@ pWebEdition_JSFunctions();
 we_main_header::pCSS();
 ?>
 </head>
-<body style="background-color:grey;margin: 0px;position:fixed;top:0px;left:0px;right:0px;bottom:0px;border:0px none;" onUnload="doUnload()">
+<body style="background-color:grey;margin: 0px;position:fixed;top:0px;left:0px;right:0px;bottom:0px;border:0px none;" onbeforeunload="doUnload()">
 	<?php
 //	get the frameset for the actual mode.
 	pWebEdition_Frameset();

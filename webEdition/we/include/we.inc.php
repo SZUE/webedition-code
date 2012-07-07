@@ -28,8 +28,8 @@ if(isset($_SERVER['SCRIPT_NAME']) && str_replace(dirname($_SERVER['SCRIPT_NAME']
 }
 
 // remove trailing slash
-if(isset($_SERVER['DOCUMENT_ROOT'])){
-	$_SERVER['DOCUMENT_ROOT'] = rtrim($_SERVER['DOCUMENT_ROOT'], '/');
+if(isset($_SERVER['DOCUMENT' . '_ROOT'])){ //so zerlegt stehen lassen: Bug #6318
+	$_SERVER['DOCUMENT' . '_ROOT'] = rtrim($_SERVER['DOCUMENT' . '_ROOT'], '/');
 }
 
 // Set PHP flags
@@ -104,7 +104,7 @@ if((isset($_SESSION['user']['ID']) && isset($_REQUEST['weSessionId']) && $_REQUE
 }
 if(!session_id() && !isset($GLOBALS['FROM_WE_SHOW_DOC']) && !defined('NO_SESS')){
 //	session_name(SESSION_NAME);
-	@session_start();
+@session_start();
 }
 if(isset($_SESSION['prefs']['Language']) && $_SESSION['prefs']['Language'] != ''){
 	if(is_dir($_SERVER['DOCUMENT_ROOT'] . '/webEdition/we/include/we_language/' . $_SESSION['prefs']['Language'])){
@@ -174,7 +174,7 @@ if(!isset($GLOBALS['WE_IS_DYN'])){ //only true on dynamic frontend pages
 	}
 
 	if($header){
-		header('Content-Type: text/html; charset = ' . $GLOBALS['WE_BACKENDCHARSET']);
+		we_html_tools::headerCtCharset('text/html', $GLOBALS['WE_BACKENDCHARSET']);
 	}
 	unset($header);
 }

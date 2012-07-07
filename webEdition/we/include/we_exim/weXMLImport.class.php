@@ -114,7 +114,7 @@ class weXMLImport extends weXMLExIm{
 					}
 				}
 
-				if($object->ClassName == "we_thumbnail"){
+				if($object->ClassName == "we_thumbnailEx"){
 					$nid = f("SELECT ID FROM " . THUMBNAILS_TABLE . " WHERE Name='" . escape_sql_query($object->Name) . "'", "ID", new DB_WE());
 					if($nid){
 						if($this->options["handle_collision"] == "replace"){
@@ -287,7 +287,7 @@ class weXMLImport extends weXMLExIm{
 		do{
 			$c++;
 
-			if($object->ClassName == "we_docTypes" || $object->ClassName == "weNavigationRule" || $object->ClassName == "we_thumbnail")
+			if($object->ClassName == "we_docTypes" || $object->ClassName == "weNavigationRule" || $object->ClassName == "we_thumbnailEx")
 				$newname = $object->$prop;
 			else
 				$newname = basename($object->$prop);
@@ -301,7 +301,7 @@ class weXMLImport extends weXMLExIm{
 				case 'weNavigationRule':
 					$newid = f("SELECT ID FROM " . NAVIGATION_RULE_TABLE . " WHERE NavigationName='" . escape_sql_query($newname) . "'", "ID", new DB_WE());
 					break;
-				case 'we_thumbnail':
+				case 'we_thumbnailEx':
 					$newid = f("SELECT ID FROM " . THUMBNAILS_TABLE . " WHERE Name='" . escape_sql_query($newname) . "'", "ID", new DB_WE());
 					break;
 				default:
@@ -320,7 +320,7 @@ class weXMLImport extends weXMLExIm{
 			$object->NavigationName = $new_name;
 			return;
 		}
-		if($object->ClassName == "we_thumbnail"){
+		if($object->ClassName == "we_thumbnailEx"){
 			$object->Name = $new_name;
 			return;
 		}
@@ -389,7 +389,7 @@ class weXMLImport extends weXMLExIm{
 								break;
 							case "weNavigation":
 							case 'weNavigationRule':
-							case 'we_thumbnail':
+							case 'we_thumbnailEx':
 							case "weBinary":
 							default:
 								$object = new $noddata();
@@ -550,20 +550,9 @@ class weXMLImport extends weXMLExIm{
 		$marker = "<!-- webackup -->";
 		$marker2 = "<!--webackup -->"; //Bug 5089
 		$pattern = basename($filename) . "_%s";
-		if(weFile::isCompressed($filename)){
-			$compress = "gzip";
-		}
-		else
-			$compress = "none";
-		if($compress != "none"){
-			$fh = @gzopen($filename, "rb");
-			$head = @gzgets($fh, 256);
-			@gzclose($fh);
-		} else{
-			$fh = @fopen($filename, "rb");
-			$head = @fgets($fh, 256);
-			@fclose($fh);
-		}
+
+		$compress = (weFile::isCompressed($filename) ? "gzip" : "none");
+		$head = weFile::loadPart($filename, 0, 256, $compress == 'gzip');
 
 		$encoding = we_xml_parser::getEncoding('', $head);
 		$_SESSION['weXMLimportCharset'] = $encoding;
@@ -572,10 +561,7 @@ class weXMLImport extends weXMLExIm{
 
 		$buff = "";
 		$filename_tmp = "";
-		if($compress != "none")
-			$fh = @gzopen($filename, "rb");
-		else
-			$fh = @fopen($filename, "rb");
+		$fh = ($compress != "none" ? @gzopen($filename, "rb") : @fopen($filename, "rb"));
 
 		$num = -1;
 		$open_new = true;
@@ -593,12 +579,7 @@ class weXMLImport extends weXMLExIm{
 				$findline = false;
 
 				while($findline == false && !@feof($fh)) {
-
-					if($compress != "none")
-						$line .= @gzgets($fh, 4096);
-					else
-						$line .= @fgets($fh, 4096);
-
+					$line .= ($compress != "none" ? @gzgets($fh, 4096) : @fgets($fh, 4096));
 					if(substr($line, -1) == "\n"){
 						$findline = true;
 					}
@@ -620,13 +601,10 @@ class weXMLImport extends weXMLExIm{
 						$buff.=$line;
 						$write = false;
 						if($marker_size){
-							if((substr($buff, (0 - ($marker_size + 1))) == $marker . "\n") || (substr($buff, (0 - ($marker_size + 2))) == $marker . "\r\n") || (substr($buff, (0 - ($marker2_size + 1))) == $marker2 . "\n") || (substr($buff, (0 - ($marker2_size + 2))) == $marker2 . "\r\n" ))
-								$write = true;
-							else
-								$write = false;
-						}
-						else
+							$write = ((substr($buff, (0 - ($marker_size + 1))) == $marker . "\n") || (substr($buff, (0 - ($marker_size + 2))) == $marker . "\r\n") || (substr($buff, (0 - ($marker2_size + 1))) == $marker2 . "\n") || (substr($buff, (0 - ($marker2_size + 2))) == $marker2 . "\r\n" ));
+						}else{
 							$write = true;
+						}
 
 						if($write){
 							$fsize+=strlen($buff);

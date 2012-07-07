@@ -33,6 +33,10 @@ function getHash($query, $DB_WE){
 		return $cache;
 	}
 	if(!isset($cache[$query])){
+		if(!is_object($DB_WE)){
+			t_e('missing DB connection');
+			return array();
+		}
 		$DB_WE->query($query);
 		$cache[$query] = ($DB_WE->next_record() ? $DB_WE->Record : array());
 	}
@@ -47,8 +51,8 @@ function f($query, $field, $DB_WE){
 function doUpdateQuery($DB_WE, $table, $hash, $where){
 	$tableInfo = $DB_WE->metadata($table);
 	$fn = array();
-	for($i = 0; $i < sizeof($tableInfo); $i++){
-		$fieldName = $tableInfo[$i]["name"];
+	foreach($tableInfo as $f){
+		$fieldName = $f["name"];
 		if($fieldName != "ID"){
 			$fn[$fieldName] = isset($hash[$fieldName]) ? $hash[$fieldName] : '';
 		}

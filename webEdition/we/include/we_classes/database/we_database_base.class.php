@@ -166,6 +166,9 @@ abstract class we_database_base{
 	 */
 	abstract public function getInfo();
 
+	/**returns the charset of the current connection*/
+	abstract public function getCurrentCharset();
+
 	/** Constructor, establishes the connection to the DB
 	 *
 	 */
@@ -210,7 +213,7 @@ abstract class we_database_base{
 	 */
 	protected function _connect(){
 		$this->Link_ID = array_pop(self::$pool);
-		if(!$this->Link_ID){
+		if(!$this->Link_ID||!$this->ping()){
 			self::$linkCount++;
 			$this->connect();
 		}
@@ -337,7 +340,7 @@ abstract class we_database_base{
 					if(!$this->retry){
 						$this->retry = true;
 						$this->Link_ID = 0;
-						$tmp = $this->query($Query_String, $allowUnion);
+						$tmp = $this->query($Query_String, $allowUnion, $unbuffered);
 						$this->retry = false;
 						return $tmp;
 					}
@@ -351,7 +354,8 @@ abstract class we_database_base{
 		}
 
 # Will return nada if it fails. That's fine.
-		return (bool) $this->Query_ID;
+//(bool) entfernt um Kompatibilität mit alten weDevEdge Beispiel herzustellen
+		return $this->Query_ID;
 	}
 
 	/* discard the query result */
@@ -509,11 +513,13 @@ abstract class we_database_base{
 				switch(strtoupper($val)){
 					case 'NOW()':
 					case 'UNIX_TIMESTAMP()':
+					case 'UNIX_TIMESTAMP(NOW())':
 					case 'CURDATE()':
 					case 'CURRENT_DATE()':
 					case 'CURRENT_TIME()':
 					case 'CURRENT_TIMESTAMP()':
 					case 'CURTIME()':
+					case 'NULL':
 						$escape = false;
 				}
 			}
@@ -661,7 +667,7 @@ abstract class we_database_base{
 			return false;
 		}
 		$col = trim($col, '`');
-		return f('SHOW COLUMNS FROM ' . $this->escape($tab) . ' LIKE "' . $col . '"', 'Path', $this) != '';
+		return (bool) count(getHash('SHOW COLUMNS FROM ' . $this->escape($tab) . ' LIKE "' . $col . '"',$this));
 	}
 
 	function isTabExist($tab){

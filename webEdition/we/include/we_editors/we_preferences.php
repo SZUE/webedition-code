@@ -83,6 +83,10 @@ $global_config[] = array('define("HIDENAMEATTRIBINWEFORM_DEFAULT",', '// Default
 // hooks
 $global_config[] = array('define("EXECUTE_HOOKS",', '// Default setting for hook execution' . "\n" . 'define("EXECUTE_HOOKS", false);');
 
+// php local scope == global scope
+$global_config[] = array('define("PHPLOCALSCOPE",', '// Default setting for assuming php local scope == global scope ' . "\n" . 'define("PHPLOCALSCOPE", false);');
+
+
 // xhtml
 $global_config[] = array('define("XHTML_DEFAULT",', '// Default setting for xml attribute' . "\n" . 'define("XHTML_DEFAULT", false);');
 $global_config[] = array('define("XHTML_DEBUG",', '// Enable XHTML debug' . "\n" . 'define("XHTML_DEBUG", false);');
@@ -90,7 +94,7 @@ $global_config[] = array('define("XHTML_REMOVE_WRONG",', '// Remove wrong xhtml 
 
 $global_config[] = array('define("WE_MAX_UPLOAD_SIZE",', '// Maximal possible uploadsize' . "\n" . 'define("WE_MAX_UPLOAD_SIZE", "");');
 $global_config[] = array('define("WE_DOCTYPE_WORKSPACE_BEHAVIOR",', '// Which Doctypes should be shown for which workspace 0=normal behaviour , 1=new behaviour' . "\n" . 'define("WE_DOCTYPE_WORKSPACE_BEHAVIOR", 0);');
-$global_config[] = array('define(\'SCHEUDLER_TRIGGER\',', '// decide how the scheduler works' . "\n" . 'define(\'SCHEUDLER_TRIGGER\', 1);');
+$global_config[] = array('define("SCHEDULER_TRIGGER",', '// decide how the scheduler works' . "\n" . 'define("SCHEDULER_TRIGGER", true);');
 
 // accessibility
 $global_config[] = array('define("SHOWINPUTS_DEFAULT",', '// Default setting for showinputs attribute' . "\n" . 'define("SHOWINPUTS_DEFAULT", true);');
@@ -553,7 +557,7 @@ function get_value($settingvalue){
 			return defined("WE_DOCTYPE_WORKSPACE_BEHAVIOR") ? WE_DOCTYPE_WORKSPACE_BEHAVIOR : 0;
 
 		case 'we_scheduler_trigger':
-			return defined('SCHEUDLER_TRIGGER') ? SCHEUDLER_TRIGGER : SCHEDULER_TRIGGER_POSTDOC;
+			return defined("SCHEDULER_TRIGGER") ? SCHEDULER_TRIGGER : SCHEDULER_TRIGGER_POSTDOC;
 
 		/*		 * *******************************************************************
 		 * TREE
@@ -567,6 +571,12 @@ function get_value($settingvalue){
 		 * ******************************************************************* */
 		case "execute_hooks":
 			return defined("EXECUTE_HOOKS") ? EXECUTE_HOOKS : false;
+
+		/*		 * *******************************************************************
+		 * PHPLOCALSCOPE
+		 * ******************************************************************* */
+		case "phpLocalScope":
+			return defined("PHPLOCALSCOPE") ? PHPLOCALSCOPE : false;
 
 		/*		 * *******************************************************************
 		 * Validation
@@ -1175,7 +1185,9 @@ function remember_value($settingvalue, $settingname){
 
 				$_activeIntegratedModulesFile = '<?php
 $_we_active_integrated_modules = array(
-' . $_activeIntegratedModulesFile . ');';
+' . $_activeIntegratedModulesFile . ');
+$GLOBALS["_we_active_integrated_modules"]=$_we_active_integrated_modules;
+';
 				// save active integrated modules
 				$GLOBALS['config_files']['active_integrated_modules']['content'] = $_activeIntegratedModulesFile;
 
@@ -1747,7 +1759,7 @@ $_we_active_integrated_modules = array(
 
 			case '$_REQUEST["we_scheduler_trigger"]':
 				$_file = &$GLOBALS['config_files']['conf_global']['content'];
-				$_file = weConfParser::changeSourceCode("define", $_file, "SCHEUDLER_TRIGGER", $settingvalue);
+				$_file = weConfParser::changeSourceCode("define", $_file, "SCHEDULER_TRIGGER", $settingvalue);
 
 				$_update_prefs = false;
 				break;
@@ -1826,6 +1838,18 @@ $_we_active_integrated_modules = array(
 
 				$_file = &$GLOBALS['config_files']['conf_global']['content'];
 				$_file = weConfParser::changeSourceCode("define", $_file, "EXECUTE_HOOKS", $settingvalue);
+
+				$_update_prefs = false;
+				break;
+
+			/*			 * ***************************************************************
+			 * phpLocalScope
+			 * *************************************************************** */
+
+			case '$_REQUEST["phpLocalScope"]':
+
+				$_file = &$GLOBALS['config_files']['conf_global']['content'];
+				$_file = weConfParser::changeSourceCode("define", $_file, "PHPLOCALSCOPE", $settingvalue);
 
 				$_update_prefs = false;
 				break;
@@ -2688,6 +2712,7 @@ function save_all_values(){
 		$_update_prefs = remember_value(isset($_REQUEST["thumbnail_dir"]) ? $_REQUEST["thumbnail_dir"] : null, '$_REQUEST["thumbnail_dir"]') || $_update_prefs;
 		$_update_prefs = remember_value(isset($_REQUEST["we_tracker_dir"]) ? $_REQUEST["we_tracker_dir"] : null, '$_REQUEST["we_tracker_dir"]') || $_update_prefs;
 		$_update_prefs = remember_value(isset($_REQUEST["execute_hooks"]) ? $_REQUEST["execute_hooks"] : null, '$_REQUEST["execute_hooks"]') || $_update_prefs;
+		$_update_prefs = remember_value(isset($_REQUEST["phpLocalScope"]) ? $_REQUEST["phpLocalScope"] : null, '$_REQUEST["phpLocalScope"]') || $_update_prefs;
 		$_update_prefs = remember_value(isset($_REQUEST["inlineedit_default"]) ? $_REQUEST["inlineedit_default"] : null, '$_REQUEST["inlineedit_default"]') || $_update_prefs;
 		$_update_prefs = remember_value(isset($_REQUEST["removefirstparagraph_default"]) ? $_REQUEST["removefirstparagraph_default"] : null, '$_REQUEST["removefirstparagraph_default"]') || $_update_prefs;
 		$_update_prefs = remember_value(isset($_REQUEST["hidenameattribinweimg_default"]) ? $_REQUEST["hidenameattribinweimg_default"] : null, '$_REQUEST["hidenameattribinweimg_default"]') || $_update_prefs;
@@ -2941,7 +2966,7 @@ function build_dialog($selected_setting = "ui"){
 			 * SAVE DIALOG
 			 * *************************************************************** */
 
-			$_settings = array($_settings, array("headline" => "", "html" => g_l('prefs', '[save]'), "space" => 0));
+			$_settings = array(array("headline" => "", "html" => g_l('prefs', '[save]'), "space" => 0));
 
 			/**
 			 * BUILD FINAL DIALOG
@@ -5105,6 +5130,7 @@ else {
 					$_Schedtrigger_setting->addOption(SCHEDULER_TRIGGER_PREDOC, g_l('prefs', '[we_scheduler_trigger][preDoc]')); //pre
 					$_Schedtrigger_setting->addOption(SCHEDULER_TRIGGER_POSTDOC, g_l('prefs', '[we_scheduler_trigger][postDoc]')); //post
 					$_Schedtrigger_setting->addOption(SCHEDULER_TRIGGER_CRON, g_l('prefs', '[we_scheduler_trigger][cron]')); //cron
+					$_Schedtrigger_setting->selectOption(get_value("we_scheduler_trigger"));
 					$tmp = '<div>' . $_Schedtrigger_setting->getHtml() . '<br/>' . we_html_tools::htmlAlertAttentionBox(g_l('prefs', '[we_scheduler_trigger][description]'), 2, 430, false) . '</div>';
 					$_settings[] = array("headline" => g_l('prefs', '[we_scheduler_trigger][head]'), "html" => $tmp, "space" => 200);
 				}
@@ -5186,12 +5212,19 @@ else {
 					$_db_set_charset->addOption($charset, $charset);
 				}
 
-				if(defined('DB_SET_CHARSET')){
+				if(defined('DB_SET_CHARSET') && DB_SET_CHARSET != ''){
 					$_db_set_charset->selectOption(DB_SET_CHARSET);
+				} else{
+					$tmp = $GLOBALS['DB_WE']->getCurrentCharset();
+					if($tmp){
+						$_db_set_charset->selectOption($tmp);
+						$_file = &$GLOBALS['config_files']['conf_global']['content'];
+						$_file = weConfParser::changeSourceCode("define", $_file, 'DB_SET_CHARSET', $settingvalue);
+					}
 				}
 
 
-				array_push($_settings, array("headline" => g_l('prefs', '[db_set_charset]'), "html" => $html_db_charset_information . $_db_set_charset->getHtml() . $html_db_charset_warning, "space" => 200));
+				$_settings[] = array("headline" => g_l('prefs', '[db_set_charset]'), "html" => $html_db_charset_information . $_db_set_charset->getHtml() . $html_db_charset_warning, "space" => 200);
 
 				// Generate needed JS
 				$_needed_JavaScript .= we_html_element::jsElement("
@@ -5301,6 +5334,23 @@ else {
 				$hooksHtml .= $_php_setting->getHtml();
 
 				array_push($_settings, array("headline" => g_l('prefs', '[hooks]'), "html" => $hooksHtml, "space" => 200));
+
+				//  select how php is parsed
+				$_php_setting = new we_html_select(array("name" => "phpLocalScope", "class" => "weSelect"));
+				$_php_setting->addOption(0, g_l('prefs', '[no]'));
+				$_php_setting->addOption(1, g_l('prefs', '[yes]'));
+
+				if(get_value("phpLocalScope")){
+					$_php_setting->selectOption(1);
+				} else{
+					$_php_setting->selectOption(0);
+				}
+
+				$phpLocalScopeHtml = we_html_tools::htmlAlertAttentionBox(g_l('prefs', '[phpLocalScope_information]'), 2, 240, false) . "<br/>";
+
+				$phpLocalScopeHtml .= $_php_setting->getHtml();
+
+				array_push($_settings, array("headline" => g_l('prefs', '[phpLocalScope]'), "html" => $phpLocalScopeHtml, "space" => 200));
 
 				// Build dialog element if user has permission
 				$_dialog = create_dialog("", g_l('prefs', '[tab_system]'), $_settings, -1, "", "", null, $_needed_JavaScript);

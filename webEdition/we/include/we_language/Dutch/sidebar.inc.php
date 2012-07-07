@@ -4,7 +4,7 @@ $l_sidebar=array(
 	'admin'=>array(
 		'0'=>array(
 			'headline'=>'Preferences Sidebar',
-			'link'=>'javascript:top.we_cmd(`openPreferences`);',
+			'link'=>'javascript:top.we_cmd("openPreferences");',
 			'text'=>'U vind de instellingen voor de zijbalk, zoals individuele start documenten, breedte of deactivatie van de zijbalk onder extras> voorkeuren > algemeen ... onder de "Gebruikers interface" tab',
 	),),
 	'confirm_to_close_sidebar'=>'Wilt u de zijbalk echt sluiten?',
@@ -23,13 +23,13 @@ $l_sidebar=array(
 		'2'=>array(
 			'headline'=>'Other help resources',
 			'icon'=>'help.gif',
-			'link'=>'javascript:top.we_cmd(`help`);',
+			'link'=>'javascript:top.we_cmd("help");',
 			'text'=>'Overzicht van verdere instructies en referenties',
 		),
 		'3'=>array(
 			'headline'=>'Tag reference',
 			'icon'=>'firststepswizard.gif',
-			'link'=>'http://tags.webedition.org/wiki/en/',
+			'link'=>'http://webedition.org/de/webedition-cms/dokumentation/tag-referenz/',
 			'text'=>'Here you will find a list of all webEdition we:Tags with attributes and examples.',
 		),
 		'4'=>array(

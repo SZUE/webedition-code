@@ -23,17 +23,57 @@
  * @license    http://www.gnu.org/copyleft/gpl.html  GPL
  */
 function we_parse_tag_xmlnode($attribs, $content){
-	$unq = '$_xmlnode' . uniqid(rand());
-	return $unq . '=' . we_tag_tagParser::printTag('xmlnode', $attribs) . ';
+	$arr = array();
+	eval('$arr = ' . ((defined('PHPLOCALSCOPE') && PHPLOCALSCOPE)? str_replace('$', '\$', $attribs):$attribs) . ';'); //Bug #6516
+	//fixme code zum umleiten fehlt noch 6495
+	$to = weTag_getParserAttribute('to', $arr, 'screen');
+	$nameTo =weTag_getParserAttribute("nameto", $arr);
+	$printend=';';
+	switch($to){
+		case "screen" :
+			$printstart='print ';
+			break;
+		case "request" :
+			$printstart='$_REQUEST["'.$nameTo.'"] = ';
+			break;
+		case "post" :
+			$printstart='$_POST["'.$nameTo.'"] = ';
+			break;
+		case "get" :
+			$printstart='$_GET["'.$nameTo.'"] = ';
+			break;
+		case "global" :
+			$printstart='$GLOBALS["'.$nameTo.'"] = ';
+			break;
+		case "session" :
+			$printstart='$_SESSION["'.$nameTo.'"] = ';
+			break;
+		case "top" :		
+			$printstart='$GLOBALS["WE_MAIN_DOC"]->setElement('.$nameTo.',';
+			$printend=');';
+			break;
+		case "self" :
+			$printstart='$GLOBALS["we_doc"]->setElement('.$nameTo.',';
+			$printend=');';
+			break;
+		
+		case "sessionfield" :
+			$printstart='if(isset($_SESSION["webuser"]["'.$nameTo.'"]))$_SESSION["webuser"]["'.$nameTo.'"] = ';
+			break;
+	}
+	$unq = '$_xmlnode' .  uniqid(rand());
+	return '<?php ' . $unq . '=' . we_tag_tagParser::printTag('xmlnode', $attribs) . ';
 		while(' . $unq . '->next()){
-			if(' . $unq . '->hasChild()){
-			$GLOBALS[\'xsuperparent\']=' . $unq . '->getNode();
-				?>' . $content . '<?php
+			if(  ' . $unq . '->hasChild() ){
+			$GLOBALS[\'xsuperparent\']=' . $unq . '->getNode();?>' . $content . '<?php
 			}else{
-			  print ' . $unq . '->getFeedData();
+			   ' .$printstart. $unq . '->getFeedData()'.$printend.'	  
 			}
-			array_pop($GLOBALS["xstack"]);
-			unset(' . $unq . ')';
+			//array_pop($GLOBALS["xstack"]);  //ausgeblendet wegen 6339 und beobachtetem Verhalten, das immer maximal zwei Sachen angeziegt wurden
+			// fix me
+			// wann kann man was aus dem Array löschen?
+		}
+		unset(' . $unq . ');?>';
 }
 
 /**
@@ -43,8 +83,10 @@ function we_parse_tag_xmlnode($attribs, $content){
  * @desc Beschreibung eingeben...
  */
 function we_tag_xmlnode($attribs){
-	if(($foo = attributFehltError($attribs, "xpath", __FUNCTION__)))
-		return $foo;
+	if(($foo = attributFehltError($attribs, "xpath", __FUNCTION__))){
+		print $foo;
+		return false;
+	}
 	$feed = weTag_getAttribute('feed', $attribs);
 	$url = weTag_getAttribute('url', $attribs);
 
@@ -52,19 +94,18 @@ function we_tag_xmlnode($attribs){
 		$GLOBALS["xpaths"] = array();
 	if(!isset($GLOBALS["xstack"]))
 		$GLOBALS["xstack"] = array();
-	$pind_name = count($GLOBALS["xstack"]) - 1;
+	$pind_name = count($GLOBALS["xstack"])-1;
 	if($pind_name < 0){
 		$pind_name = 0;
 		$parent_name = '';
-	} else{
+	} else {
 		$parent_name = $GLOBALS["xstack"][$pind_name];
 	}
 
 	$ind_name = count($GLOBALS["xpaths"]) + 1;
 	$GLOBALS["xpaths"][$ind_name] = array();
-	$GLOBALS["xpaths"][$ind_name]["xpath"] = $attr["xpath"];
+	$GLOBALS["xpaths"][$ind_name]["xpath"] = $attribs["xpath"];
 	$GLOBALS["xpaths"][$ind_name]["parent"] = $parent_name;
-
 	$got_name = false;
 
 
@@ -73,34 +114,34 @@ function we_tag_xmlnode($attribs){
 		$feed_name = new weXMLBrowser($url);
 		$GLOBALS["xpaths"][$ind_name]["url"] = $url;
 		$got_name = true;
-	} else
-	if($feed){
-		$feed_name = $GLOBALS["xmlfeeds"][$feed];
-		$GLOBALS["xpaths"][$ind_name]["feed"] = $feed;
-		$got_name = true;
-	} else{
-		$got_name = false;
-		$c_name = 0;
-
-		if(!empty($parent_name)){
-			for($c_name = $pind_name; $c_name > -1; $c_name--){
-				$otac_name = $GLOBALS["xstack"][$c_name];
-				if(isset($GLOBALS["xpaths"][$otac_name])){
-					if(isset($GLOBALS["xpaths"][$otac_name]["url"]) && !empty($GLOBALS["xpaths"][$otac_name]["url"])){
-						$feed_name = new weXMLBrowser($GLOBALS["xpaths"][$otac_name]["url"]);
-						$GLOBALS["xpaths"][$ind_name]["url"] = $GLOBALS["xpaths"][$otac_name]["url"];
-						$got_name = true;
-					}
-					if(isset($GLOBALS["xpaths"][$otac_name]["feed"]) && !empty($GLOBALS["xpaths"][$otac_name]["feed"])){
-						$feed_name = $GLOBALS["xmlfeeds"][$GLOBALS["xpaths"][$otac_name]["feed"]];
-						$GLOBALS["xpaths"][$ind_name]["feed"] = $GLOBALS["xpaths"][$otac_name]["feed"];
-						$got_name = true;
+	} else {
+		if($feed){
+			$feed_name = $GLOBALS["xmlfeeds"][$feed];
+			$GLOBALS["xpaths"][$ind_name]["feed"] = $feed;
+			$got_name = true;
+		} else {
+			$got_name = false;
+			$c_name = 0;
+	
+			if(!empty($parent_name)){
+				for($c_name = $pind_name; $c_name > -1; $c_name--){
+					$otac_name = $GLOBALS["xstack"][$c_name];
+					if(isset($GLOBALS["xpaths"][$otac_name])){
+						if(isset($GLOBALS["xpaths"][$otac_name]["url"]) && !empty($GLOBALS["xpaths"][$otac_name]["url"])){
+							$feed_name = new weXMLBrowser($GLOBALS["xpaths"][$otac_name]["url"]);
+							$GLOBALS["xpaths"][$ind_name]["url"] = $GLOBALS["xpaths"][$otac_name]["url"];
+							$got_name = true;
+						}
+						if(isset($GLOBALS["xpaths"][$otac_name]["feed"]) && !empty($GLOBALS["xpaths"][$otac_name]["feed"])){
+							$feed_name = $GLOBALS["xmlfeeds"][$GLOBALS["xpaths"][$otac_name]["feed"]];
+							$GLOBALS["xpaths"][$ind_name]["feed"] = $GLOBALS["xpaths"][$otac_name]["feed"];
+							$got_name = true;
+						}
 					}
 				}
 			}
 		}
 	}
-
 	$nodes_name = array();
 	if($got_name){
 		if(isset($GLOBALS["xsuperparent"])){
@@ -122,13 +163,14 @@ function we_tag_xmlnode($attribs){
 				}
 			}
 		}
-		if(count($nodes_name) != 0)
+		if(count($nodes_name) != 0){
 			$got_name = true;
-		else
+		} else {
 			$got_name = true;
+		}
 	}
 
-	array_push($GLOBALS["xstack"], ind_name);
+	array_push($GLOBALS["xstack"], $ind_name); //war einfach ind_name und fehler undefinend konstant
 
 	return new _we_tag_xmlnode_struct($nodes_name, $feed_name);
 }

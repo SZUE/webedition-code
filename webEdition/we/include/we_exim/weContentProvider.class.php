@@ -145,7 +145,7 @@ class weContentProvider{
 				return "we:navigation";
 			case "weNavigationRule":
 				return "we:navigationrule";
-			case "we_thumbnail":
+			case "we_thumbnailEx":
 				return "we:thumbnail";
 			default:
 				return "we:document";
@@ -259,7 +259,7 @@ class weContentProvider{
 				if(isset($object->$v))
 					$content = $object->$v;
 				if(self::needCoding($object->ClassName, $v)){
-					$content = self::encode($content);
+					$content = self::getCDATA(self::encode($content));
 				} else if(self::needCdata($object->ClassName, $v, $content)){
 					$content = self::getCDATA($content);
 				}
@@ -296,7 +296,7 @@ class weContentProvider{
 				if(isset($object->$v))
 					$content = $object->$v;
 				if(self::needCoding($object->ClassName, $v)){
-					$content = self::encode($content);
+					$content = self::getCDATA(self::encode($content));
 				} else if(self::needCdata($object->ClassName, $v, $content)){
 					$content = self::getCDATA($content);
 				}
@@ -334,7 +334,7 @@ class weContentProvider{
 
 		$classname = (isset($object->Pseudo) ? $object->Pseudo : $object->ClassName);
 
-		if($classname == "we_category" || $classname == "weNavigation" || $classname == "weNavigationRule" || $classname == "we_thumbnail")
+		if($classname == "we_category" || $classname == "weNavigation" || $classname == "weNavigationRule" || $classname == "we_thumbnailEx")
 			$object->persistent_slots = array_merge(array("ClassName"), $object->persistent_slots);
 
 		//write tag name
@@ -459,8 +459,7 @@ class weContentProvider{
 
 	static function isBinary($id){
 		$db = new DB_WE();
-		return f("SELECT ContentType FROM " . FILE_TABLE . " WHERE ID=" . intval($id) . " AND ContentType='image/*';", "ContentType", $db) ||
-			f("SELECT ContentType FROM " . FILE_TABLE . " WHERE ID=" . intval($id) . " AND ContentType LIKE 'application/%';", "ContentType", $db);
+		return f("SELECT 1 AS a FROM " . FILE_TABLE . " WHERE ID=" . intval($id) . " AND ContentType='image/*' OR ContentType LIKE 'application/%';", "a", $db);
 	}
 
 	static function getCDATA($data){

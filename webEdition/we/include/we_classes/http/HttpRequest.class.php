@@ -178,7 +178,7 @@ class HttpRequest{
     		$_session = curl_init();
 			curl_setopt($_session, CURLOPT_URL,$this->http_host.$this->http_path);
 			curl_setopt($_session, CURLOPT_RETURNTRANSFER, 1);
-			curl_setopt($_session, CURLOPT_CUSTOMREQUEST,'POST');
+			curl_setopt($_session, CURLOPT_CUSTOMREQUEST,$this->http_method);
 			curl_setopt($_session, CURLOPT_HEADER , 1);
 			curl_setopt($_session, CURLOPT_HTTPHEADER, $_header);
 
@@ -258,7 +258,7 @@ class HttpRequest{
             if($this->http_method == 'POST'){   //  method 'POST'
 
                 //  boundary to seperate between different content blocks
-                $boundary = 'accessibility_' . (uniqid('webEdition') . time());
+                $boundary = 'accessibility_' . (uniqid('webEdition') . time()); // FIXME: #6590: str_replace('.', '', uniqid("",true))
 
                 for($i=0;$i<$_sizeFiles;$i++){
 

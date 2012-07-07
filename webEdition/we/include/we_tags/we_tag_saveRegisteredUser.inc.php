@@ -22,10 +22,11 @@ function we_tag_saveRegisteredUser($attribs){
 	$userexists = weTag_getAttribute('userexists', $attribs);
 	$userempty = weTag_getAttribute('userempty', $attribs);
 	$passempty = weTag_getAttribute('passempty', $attribs);
+	$changesessiondata = weTag_getAttribute('changesessiondata', $attribs, true, true);
 	$default_register = f('SELECT Value FROM ' . CUSTOMER_ADMIN_TABLE . ' WHERE Name="default_saveRegisteredUser_register"', 'Value', $GLOBALS['DB_WE']) == 'true';
 	$registerallowed = (isset($attribs['register']) ? weTag_getAttribute('register', $attribs, $default_register, true) : $default_register);
 	$protected = makeArrayFromCSV(weTag_getAttribute('protected', $attribs));
-
+	$GLOBALS['we_customer_writen'] = false;
 
 	if(defined('CUSTOMER_TABLE') && isset($_REQUEST['s'])){
 		if(isset($_REQUEST['s']['Password2'])){
@@ -40,7 +41,7 @@ function we_tag_saveRegisteredUser($attribs){
 			}
 		}
 		foreach($dates as $k => $vv){
-			$_REQUEST['s'][$k] = mktime($vv['hour'], $vv['minute'], 0, $vv['month'], $vv['day'], $vv['year']);
+			$_REQUEST['s'][$k] = $vv['year'].'-'.$vv['month'].'-'.$vv['day'].' '.$vv['hour'].':'.$vv['minute'].':00';
 		}
 
 		//register new User
@@ -63,19 +64,18 @@ function we_tag_saveRegisteredUser($attribs){
 
 					if(count($set)){
 						// User in DB speichern
-						$GLOBALS['DB_WE']->query('INSERT INTO ' . CUSTOMER_TABLE . ' SET ' . implode(',', $set));
+						$GLOBALS['DB_WE']->query('INSERT INTO ' . CUSTOMER_TABLE . ' SET ' . we_database_base::arraySetter($set));
 
 						// User in session speichern
 						$uID = f('SELECT ID FROM ' . CUSTOMER_TABLE . ' WHERE Username="' . $GLOBALS['DB_WE']->escape($_REQUEST['s']['Username']) . '"', 'ID', $GLOBALS['DB_WE']);
-						if($uID){
+						$GLOBALS["we_customer_write_ID"] = $uID;
+						$GLOBALS["we_customer_writen"] = true;
+						if($uID && $changesessiondata){
 							$_SESSION['webuser'] = getHash('SELECT * FROM ' . CUSTOMER_TABLE . ' WHERE ID=' . $uID, $GLOBALS['DB_WE']);
 							$_SESSION['webuser']['registered'] = true;
 
 							$GLOBALS['DB_WE']->query('UPDATE ' . CUSTOMER_TABLE . ' SET MemberSince=UNIX_TIMESTAMP(),LastAccess=UNIX_TIMESTAMP(),LastLogin=UNIX_TIMESTAMP(),
-									ModifyDate=UNIX_TIMESTAMP(),ModifiedBy=\'frontend\' WHERE ID=' . $_SESSION['webuser']['ID']);
-							if(defined('WE_ECONDA_STAT') && WE_ECONDA_STAT){//Bug 3808, this prevents invalid code if econda is not active, but if active ...
-								echo '<a name="emos_name" title="register" rel="' . md5($_SESSION["webuser"]['ID']) . '" rev="0" ></a>';
-							}
+									ModifyDate=UNIX_TIMESTAMP(),ModifiedBy="frontend" WHERE ID=' . $_SESSION['webuser']['ID']);
 						}
 					}
 				} else{ // Username existiert schon!
@@ -85,9 +85,6 @@ function we_tag_saveRegisteredUser($attribs){
 
 					// Eingabe in Session schreiben, damit die eingegebenen Werte erhalten bleiben!
 					we_tag_saveRegisteredUser_keepInput();
-					if(defined('WE_ECONDA_STAT') && WE_ECONDA_STAT){//Bug 3808, this prevents invalid code if econda is not active, but if active ...
-						echo '<a name="emos_name" title="register" rel="' . md5($_REQUEST["s"]["ID"]) . '" rev="1" ></a>';
-					}
 
 					print getHtmlTag('script', array('type' => 'text/javascript'), 'history.back(); ' . we_message_reporting::getShowMessageCall(sprintf($userexists, $_REQUEST['s']['Username']), we_message_reporting::WE_MESSAGE_FRONTEND));
 				}
@@ -109,9 +106,6 @@ function we_tag_saveRegisteredUser($attribs){
 					if(!$passempty){
 						$passempty = g_l('customer', '[password_empty]');
 					}
-					if(defined('WE_ECONDA_STAT') && WE_ECONDA_STAT){//Bug 3808, this prevents invalid code if econda is not active, but if active ...
-						echo '<a name="emos_name" title="register" rel="noUser" rev="1" ></a>';
-					}
 					print getHtmlTag('script', array('type' => 'text/javascript'), 'history.back();' . we_message_reporting::getShowMessageCall($passempty, we_message_reporting::WE_MESSAGE_FRONTEND));
 				}
 			}
@@ -119,8 +113,7 @@ function we_tag_saveRegisteredUser($attribs){
 			// existierender User (Daten werden von User geaendert)!!
 			$Username = isset($_REQUEST['s']['Username']) ? $_REQUEST['s']['Username'] : $_SESSION['webuser']['Username'];
 
-			$GLOBALS['DB_WE']->query('SELECT ID FROM ' . CUSTOMER_TABLE . ' WHERE Username="' . $GLOBALS["DB_WE"]->escape($Username) . '" AND ID!=' . intval($_REQUEST["s"]["ID"]));
-			if(!$GLOBALS['DB_WE']->next_record()){ // es existiert kein anderer User mit den neuen Username oder username hat sich nicht geaendert
+			if(f('SELECT 1 AS a FROM ' . CUSTOMER_TABLE . ' WHERE Username="' . $GLOBALS["DB_WE"]->escape($Username) . '" AND ID!=' . intval($_REQUEST['s']['ID']), 'a', $GLOBALS['DB_WE']) != '1'){ // es existiert kein anderer User mit den neuen Username oder username hat sich nicht geaendert
 				if(isset($_REQUEST['s'])){
 
 
@@ -139,28 +132,25 @@ function we_tag_saveRegisteredUser($attribs){
 					we_saveCustomerImages();
 					$set_a = we_tag_saveRegisteredUser_processRequest();
 
-
 					if(isset($_REQUEST['s']['Password']) && $_REQUEST['s']['Password'] != $_SESSION['webuser']['Password']){//bei Password�nderungen m�ssen die Autologins des Users gel�scht werden
 						$GLOBALS['DB_WE']->query('DELETE FROM ' . CUSTOMER_AUTOLOGIN_TABLE . ' WHERE WebUserID=' . intval($_REQUEST['s']['ID']));
 					}
 					if(sizeof($set_a)){
-						$set = implode(',', $set_a);
-						$GLOBALS['DB_WE']->query('UPDATE ' . CUSTOMER_TABLE . ' SET ' . $set . ',ModifyDate=UNIX_TIMESTAMP(),ModifiedBy=\'frontend\' WHERE ID=' . intval($_REQUEST['s']['ID']));
+						$set_a['ModifyDate'] = 'UNIX_TIMESTAMP()';
+						$set_a['ModifiedBy'] = 'frontend';
+						$GLOBALS['DB_WE']->query('UPDATE ' . CUSTOMER_TABLE . ' SET ' . we_database_base::arraySetter($set_a) . ' WHERE ID=' . intval($_REQUEST['s']['ID']));
 					}
 				}
 			} else{
-
-				if(!$userexists){
-					$userexists = g_l('customer', '[username_exists]');
-				}
-
+				$userexists = $userexists ? $userexists : g_l('customer', '[username_exists]');
 				print getHtmlTag('script', array('type' => 'text/javascript'), 'history.back(); ' . we_message_reporting::getShowMessageCall(sprintf($userexists, $_REQUEST['s']['Username']), we_message_reporting::WE_MESSAGE_FRONTEND));
 			}
 
 			//die neuen daten in die session schreiben
 			$oldReg = $_SESSION['webuser']['registered'];
-			$_SESSION['webuser'] = getHash('SELECT * FROM ' . CUSTOMER_TABLE . ' WHERE ID=' . intval($_REQUEST['s']['ID']), $GLOBALS['DB_WE']);
-
+			if($changesessiondata){
+				$_SESSION['webuser'] = getHash('SELECT * FROM ' . CUSTOMER_TABLE . ' WHERE ID=' . intval($_REQUEST['s']['ID']), $GLOBALS['DB_WE']);
+			}
 			//don't set anything that wasn't set before
 			$_SESSION['webuser']['registered'] = $oldReg;
 		}
@@ -216,19 +206,14 @@ function we_saveCustomerImages(){
 						//image needs to be scaled
 						if((isset($_SESSION['webuser']['imgtmp'][$imgName]['width']) && $_SESSION['webuser']['imgtmp'][$imgName]['width']) ||
 							(isset($_SESSION['webuser']['imgtmp'][$imgName]['height']) && $_SESSION['webuser']['imgtmp'][$imgName]['height'])){
-							$fh = fopen($_serverPath, 'rb');
-							$imageData = fread($fh, filesize($_serverPath));
-							fclose($fh);
+							$imageData = weFile::load($_serverPath);
 							$thumb = new we_thumbnail();
-							$thumb->init('dummy', $_SESSION['webuser']['imgtmp'][$imgName]['width'], $_SESSION['webuser']['imgtmp'][$imgName]['height'], $_SESSION['webuser']['imgtmp'][$imgName]['keepratio'], $_SESSION['webuser']['imgtmp'][$imgName]['maximize'], false, '', 'dummy', 0, '', '', $_extension, $we_size[0], $we_size[1], $imageData, '', $_SESSION['webuser']['imgtmp'][$imgName]['quality'], true);
+							$thumb->init('dummy', $_SESSION['webuser']['imgtmp'][$imgName]['width'], $_SESSION['webuser']['imgtmp'][$imgName]['height'], $_SESSION['webuser']['imgtmp'][$imgName]['keepratio'], $_SESSION['webuser']['imgtmp'][$imgName]['maximize'], false, false, '', 'dummy', 0, '', '', $_extension, $we_size[0], $we_size[1], $imageData, '', $_SESSION['webuser']['imgtmp'][$imgName]['quality'], true);
 
 							$imgData = '';
 							$thumb->getThumb($imgData);
 
-							$fh = fopen($_serverPath, 'wb');
-							fwrite($fh, $imgData);
-							fclose($fh);
-
+							weFile::save($_serverPath, $imgData);
 							$we_size = we_thumbnail::getimagesize($_serverPath);
 						}
 
@@ -302,10 +287,10 @@ function we_tag_saveRegisteredUser_processRequest(){
 	foreach($_REQUEST['s'] as $name => $val){
 		switch($name){
 			case 'Username': ### QUICKFIX !!!
-				$set[] = 'Username="' . $GLOBALS['DB_WE']->escape($val) . '"';
-				$set[] = 'Path="/' . $GLOBALS['DB_WE']->escape($val) . '"';
-				$set[] = 'Text="' . $GLOBALS['DB_WE']->escape($val) . '"';
-				$set[] = 'Icon="customer.gif"';
+				$set['Username'] = $val;
+				$set['Path'] = $val;
+				$set['Text'] = $val;
+				$set['Icon'] = 'customer.gif';
 				break;
 			case 'Text':
 			case 'Path':
@@ -313,7 +298,7 @@ function we_tag_saveRegisteredUser_processRequest(){
 			case 'ID':
 				break;
 			default:
-				$set[] = '`' . $name . '`="' . $GLOBALS["DB_WE"]->escape($val) . '"';
+				$set[$name] = $val;
 				break;
 		}
 	}

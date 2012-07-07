@@ -123,7 +123,7 @@ class weXMLExIm{
 				return NAVIGATION_TABLE;
 			case 'weNavigationRule':
 				return NAVIGATION_RULE_TABLE;
-			case 'we_thumbnail':
+			case 'we_thumbnailEx':
 				return THUMBNAILS_TABLE;
 			case 'weBinary':
 				return '';
@@ -316,7 +316,7 @@ class weXMLExIm{
 				$path = id_to_path($cid, OBJECT_TABLE);
 				if($wsQuery != '')
 					$wsQuery .=' OR ';
-				$wsQuery .= " Path like '" . $db->escape($path) . "/%' OR Path='" . $db->es($path) . "'";
+				$wsQuery .= " Path like '" . $db->escape($path) . "/%' OR Path='" . $db->escape($path) . "'";
 			}
 		}
 

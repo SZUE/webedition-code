@@ -28,6 +28,10 @@ function we_tag_date($attribs){
 
 	switch(strtolower($type)){
 		case 'js':
+			$monthsLong = g_l('date', '[month][long]');
+			ksort($monthsLong);
+			$monthsShort = g_l('date', '[month][short]');
+			ksort($monthsShort);
 			$js = 'heute = new Date();
 		function getDateS(d){
 			switch(d){
@@ -47,9 +51,9 @@ function we_tag_date($attribs){
 		}
 		function getDateWord(f,dateObj){
 			var l_day_Short = new Array("' . implode('","', g_l('date', '[day][short]')) . '");
-			var l_monthLong = new Array("' . implode('","', g_l('date', '[month][long]')) . '");
+			var l_monthLong = new Array("' . implode('","', $monthsLong) . '");
 			var l_dayLong = new Array("' . implode('","', g_l('date', '[day][long]')) . '");
-			var l_monthShort = new Array("' . implode('","', g_l('date', '[month][short]')) . '");
+			var l_monthShort = new Array("' . implode('","', $monthsShort) . '");
 			switch(f){
 				case "D":
 					return l_day_Short[dateObj.getDay()];
@@ -153,7 +157,7 @@ function correctDateFormat($format, $t = 0){
 	}
 	$dt = is_object($t) ? $t : new DateTime((is_numeric($t) ? '@' : '') . $t);
 
-	$escapes = array('d' => '\\d', 'D' => '\\D', 'j' => '\\j', 'l' => '\\l', 'N' => '\\N', 'S' => '\\S', 'w' => '\\w', 'Z' => '\\Z',
+	$escapes = array('d' => '\\d', 'D' => '\\D', 'j' => '\\j', 'l' => '\\l', 'N' => '\\N', 'S' => '\\S', 'w' => '\\w', 'z' => '\\z',
 		'W' => '\\W', 'F' => '\\F', 'M' => '\\M', 'm' => '\\m', 'n' => '\\n', 't' => '\\t', 'L' => '\\L', 'o' => '\\o', 'Y' => '\\Y',
 		'y' => '\\y', 'a' => '\\a', 'A' => '\\A', 'B' => '\\B', 'g' => '\\g', 'G' => '\\G', 'h' => '\\h', 'H' => '\\H', 'i' => '\\i', 's' => '\\s',
 		'u' => '\\u', 'e' => '\\e', 'I' => '\\I', 'O' => '\\O', 'P' => '\\P', 'T' => '\\T', 'Z' => '\\Z', 'c' => '\\c', 'r' => '\\r', 'U' => '\\U');

@@ -63,7 +63,7 @@ if(isset($_REQUEST['we_cmd'][0])){
 					filename = "' . addslashes($_filename) . '";
 					ct = "' . $_ct . '";
 					source = "' . base64_encode($_source) . '";
-					if (top.plugin.isLoaded) {
+					if (top.plugin.isLoaded && (typeof top.plugin.document.WePlugin.editSource == "function") ) {
 						top.plugin.document.WePlugin.editSource(session,transaction,filename,source,ct,"true","' . $charset . '");
 					}
 				');
@@ -97,7 +97,7 @@ if(isset($_REQUEST['we_cmd'][0])){
 			$out = we_html_element::jsElement('
 						session = "' . session_id() . '";
 						transaction = "' . $_we_transaction . '";
-						siteurl="' . getServerUrl(true) . '/webEdition/editors/template/editor/getTmpFile.php?we_cmd[0]=' . basename($_filename) . '";
+						siteurl="' . getServerUrl(true) . WEBEDITION_DIR . 'showTempFile.php?file=' . $_tmp_file . '";
 						top.plugin.document.WePlugin.editFile(session,transaction,"' . addslashes($_filename) . '",siteurl,"' . $we_ContentType . '");
 					');
 

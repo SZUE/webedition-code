@@ -25,7 +25,7 @@ include_once($_SERVER['DOCUMENT_ROOT'] . "/webEdition/we/include/we_tag.inc.php"
 
 we_html_tools::protect();
 
-if(isset($GLOBALS['we_doc']->Charset)&&$GLOBALS['we_doc']->Charset){ //	send charset which might be determined in template
+if(isset($GLOBALS['we_doc']->Charset) && $GLOBALS['we_doc']->Charset){ //	send charset which might be determined in template
 	$charset = $GLOBALS['we_doc']->Charset;
 } else{
 	$charset = DEFAULT_CHARSET;
@@ -46,14 +46,14 @@ if(is_array($GLOBALS['we_doc']->DefArray)){
 					"space" => 0,
 					"name" => uniqid(""),
 					)
-				);
+				); // FIXME: #6590: str_replace('.', '', uniqid("",true))
 				break;
 			}
 		}
 	}
 }
 
-we_html_tools::htmlTop('',$charset);
+we_html_tools::htmlTop('', $charset);
 if($GLOBALS['we_doc']->CSS){
 	$cssArr = makeArrayFromCSV($GLOBALS['we_doc']->CSS);
 	foreach($cssArr as $cs){
@@ -94,14 +94,14 @@ $GLOBALS['we_doc']->pHiddenTrans();
 
 if($_editMode){
 
-	echo we_multiIconBox::_getBoxStart("100%", g_l('weClass', "[edit]"), uniqid(""), 30);
+	echo we_multiIconBox::_getBoxStart("100%", g_l('weClass', "[edit]"), uniqid(""), 30); // FIXME: #6590: str_replace('.', '', uniqid("",true))
 
 	echo $jsGUI->getContainer();
 
 	echo we_multiIconBox::_getBoxEnd("100%");
 
 	foreach($parts as $idx => $part){
-		$uniqid = uniqid("");
+		$uniqid = uniqid(""); // FIXME: #6590: str_replace('.', '', uniqid("",true))
 
 		$content = '<div id="' . $part['name'] . '">'
 			. '<a name="f' . $part['name'] . '"></a>'
@@ -120,9 +120,7 @@ if($_editMode){
 			. '</tr>'
 			. '</table>'
 			. '</div>'
-			. '<script type="text/javascript">'
-			. 'objectEntry.add(document, \'' . $part['name'] . '\', null);'
-			. '</script>';
+			. we_html_element::jsElement('objectEntry.add(document, \'' . $part['name'] . '\', null);');
 
 		echo $content;
 	}
@@ -134,6 +132,6 @@ if($_editMode){
 }
 ?>
 	</form>
-</body><script  type="text/javascript">setTimeout("doScrollTo();",100);</script>
+</body><?php echo we_html_element::jsElement('setTimeout("doScrollTo();",100);'); ?>
 
 </html>

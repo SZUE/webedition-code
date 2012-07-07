@@ -170,7 +170,8 @@ abstract class we_util_File{
 	public static function getUniqueId($md5 = true){
 		// md5 encrypted hash with the start value microtime(). The function
 		// uniqid() prevents from simultanious access, within a microsecond.
-		return ($md5 ? md5(uniqid(microtime())) : uniqid(microtime()));
+		return ($md5 ? md5(str_replace('.', '', uniqid('',true))) : uniqid(microtime())); 
+		// #6590, changed from: uniqid(microtime()) and: FIXME: #6590: str_replace('.', '', uniqid("",true))"
 	}
 
 	/**
@@ -405,16 +406,14 @@ abstract class we_util_File{
 	}
 
 	public static function saveFile($file_name, $sourceCode = ''){
-		self::createLocalFolderByPath(str_replace('\\', '/', dirname($file_name)));
+		if(!self::createLocalFolderByPath(str_replace('\\', '/', dirname($file_name)))){
+			return false;
+		}
 		$fh = @fopen($file_name, 'wb');
 		if(!$fh){
 			return false;
 		}
-		if($sourceCode){
-			$ret = fwrite($fh, $sourceCode);
-		} else{
-			$ret = true;
-		}
+		$ret = ($sourceCode ? fwrite($fh, $sourceCode) : true);
 		fclose($fh);
 		return $ret;
 	}
@@ -427,8 +426,9 @@ abstract class we_util_File{
 
 		$returnValue = true;
 
-		if(self::checkAndMakeFolder($completeDirPath, true))
+		if(self::checkAndMakeFolder($completeDirPath, true)){
 			return $returnValue;
+		}
 
 		$cf = array($completeDirPath);
 

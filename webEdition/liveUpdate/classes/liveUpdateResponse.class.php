@@ -101,14 +101,13 @@ class liveUpdateResponse {
 				);
 			break;
 
+			case 'executePatches':
+				return  liveUpdateFunctionsServer::executeAllPatches();
 			case 'eval':
 				return eval('?>' . $this->Code);
 			break;
 
 			case 'state':
-
-
-
 				return liveUpdateFrames::htmlStateMessage();
 				return 'Meldung vom Server:<br />Status: ' . $this->State . '<br />Meldung: ' . $this->Message;
 			break;
@@ -119,6 +118,3 @@ class liveUpdateResponse {
 		}
 	}
 }
-
-
-?>

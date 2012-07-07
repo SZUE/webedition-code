@@ -327,8 +327,6 @@ class weCustomerEIWizard{
 
 	function getHTMLExportStep5(){
 		@set_time_limit(0);
-		$prot = getServerProtocol();
-		$preurl = (isset($_SERVER["HTTP_HOST"]) && $_SERVER["HTTP_HOST"]) ? "$prot://" . $_SERVER["HTTP_HOST"] : "";
 		if(isset($_GET["exportfile"])){
 			$_filename = basename(urldecode($_GET["exportfile"]));
 
@@ -336,33 +334,30 @@ class weCustomerEIWizard{
 				&& !preg_match('%p?html?%i', $_filename) && stripos($_filename, "inc") === false && !preg_match('%php3?%i', $_filename)){ // Security check
 				$_size = filesize(TEMP_PATH . "/" . $_filename);
 
-				if(we_isHttps()){ // Additional headers to make downloads work using IE in HTTPS mode.
-					header("Pragma: ");
-					header("Cache-Control: ");
-					header("Expires: " . gmdate("D, d M Y H:i:s") . " GMT");
-					header("Last-Modified: " . gmdate("D, d M Y H:i:s") . " GMT");
-					header("Cache-Control: no-store, no-cache, must-revalidate"); // HTTP 1.1
-					header("Cache-Control: post-check=0, pre-check=0", false);
-				} else{
-					header("Cache-control: private");
-				}
+				header("Pragma: public");
+				header("Expires: 0"/* . gmdate("D, d M Y H:i:s") . " GMT" */);
+				/* 				if(we_isHttps()){ // Additional headers to make downloads work using IE in HTTPS mode.
+				  //					header("Cache-Control: ");
+				  header("Last-Modified: " . gmdate("D, d M Y H:i:s") . " GMT");
+				  header("Cache-Control: no-store, no-cache, must-revalidate"); // HTTP 1.1
+				  header("Cache-Control: post-check=0, pre-check=0", false);
+				  } else{
+				  } */
 
-				header("Content-Type: application/force-download");
-				header("Content-Disposition: attachment; filename=\"" . trim(htmlentities($_filename)) . "\"");
-				header("Content-Description: " . trim(htmlentities($_filename)));
-				header("Content-Length: " . $_size);
+				header("Cache-control: private, max-age=0, must-revalidate");
 
-				$_filehandler = readfile(TEMP_PATH . "/" . $_filename);
+				header('Content-Type: application/octet-stream');
+				header('Content-Disposition: attachment; filename="' . trim(htmlentities($_filename)) . '"');
+				header('Content-Description: Customer-Export');
+				header('Content-Length: ' . $_size);
 
-				exit;
-			} else{
-				header("Location: " . $preurl . $this->frameset . "?pnt=body&step=99&error=download_failed");
+				readfile(TEMP_PATH . "/" . $_filename);
+
 				exit;
 			}
-		} else{
-			header("Location: " . $preurl . $this->frameset . "?pnt=body&step=99&error=download_failed");
-			exit;
 		}
+		header("Location: " . getServerUrl() . $this->frameset . "?pnt=body&step=99&error=download_failed");
+		exit;
 	}
 
 	function getHiddens($options = array()){
@@ -915,15 +910,11 @@ class weCustomerEIWizard{
 		$table->setCol(0, 0, array("class" => "defaultfont"), sprintf(g_l('modules_customer', '[import_finished_desc]'), $impno));
 
 		if($tmpdir != "" && is_file(TEMP_PATH . "/$tmpdir/$tmpdir.log") && is_readable(TEMP_PATH . "/$tmpdir/$tmpdir.log")){
-			$log = "";
-			$fh = fopen(TEMP_PATH . "/$tmpdir/$tmpdir.log", "rb");
-			if($fh){
-				while(!feof($fh))
-					$log.=fread($fh, 4096);
+			$log = weFile::load(TEMP_PATH . "/$tmpdir/$tmpdir.log", 'rb');
+			if($log){
 
 				$table->setColContent(1, 0, we_html_tools::htmlAlertAttentionBox(g_l('modules_customer', '[show_log]'), 1, "550"));
 				$table->setColContent(2, 0, we_html_element::htmlTextArea(array("name" => "log", "rows" => "15", "cols" => "15", "style" => "width: 550px; height: 200px;"), htmlspecialchars($log)));
-				fclose($fh);
 				unlink(TEMP_PATH . "/$tmpdir/$tmpdir.log");
 			}
 		}

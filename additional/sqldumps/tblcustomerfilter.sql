@@ -1,3 +1,6 @@
+###UPDATEONLY###DELETE FROM ###TBLPREFIX###tblcustomerfilter WHERE modelTable="";
+/* query separator */
+
 CREATE TABLE ###TBLPREFIX###tblcustomerfilter (
   `id` bigint(20) unsigned NOT NULL auto_increment,
   `modelId` bigint(20) unsigned NOT NULL,
@@ -13,6 +16,6 @@ CREATE TABLE ###TBLPREFIX###tblcustomerfilter (
   `blackList` text NOT NULL,
   PRIMARY KEY  (`id`),
   KEY `mode` (`mode`),
-  KEY `modelId` (`modelId`,`modelType`,`modelTable`),
+  UNIQUE KEY `modelIdN` (`modelId`,`modelType`,`modelTable`),
   KEY modelType (modelType,accessControlOnTemplate)
 ) ENGINE=MyISAM;

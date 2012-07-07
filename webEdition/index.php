@@ -42,10 +42,6 @@ require_once($_SERVER['DOCUMENT_ROOT'] . '/webEdition/we/include/we.inc.php');
 
 $ignore_browser = isset($_REQUEST['ignore_browser']) && ($_REQUEST['ignore_browser'] === 'true');
 
-/* * ***************************************************************************
- * FUNCTIONS
- * *************************************************************************** */
-
 function getValueLoginMode($val){
 	$mode = isset($_COOKIE['we_mode']) ? $_COOKIE['we_mode'] : 'normal';
 	switch($val){
@@ -62,6 +58,11 @@ function printHeader($login){
 	/*	 * ***************************************************************************
 	 * CREATE HEADER
 	 * *************************************************************************** */
+	header('Expires: ' . gmdate('D, d.m.Y H:i:s') . ' GMT');
+	header('Cache-Control: must-revalidate, post-check=0, pre-check=0');
+	header('Pragma: public');
+	header('Pragma: no-cache');
+
 	we_html_tools::htmlTop('webEdition');
 	print STYLESHEET .
 		we_html_element::cssElement('html, body {height:100%;}');
@@ -201,7 +202,7 @@ if(isset($_POST['checkLogin']) && !count($_COOKIE)){
 	$_error_count = 0;
 	$tmp = ini_get('session.save_path');
 
-	if(!(is_dir($tmp) && file_exists($tmp))){
+	if(!(is_dir($tmp) || (is_link($tmp) && is_dir(readlink($tmp))))){
 		$_error .= $_error_count++ . ' - ' . sprintf(g_l('start', '[tmp_path]'), ini_get('session.save_path')) . we_html_element::htmlBr();
 	}
 
@@ -231,7 +232,7 @@ if(isset($_POST['checkLogin']) && !count($_COOKIE)){
 	$_error_count = 0;
 	$tmp = ini_get('session.save_path');
 
-	if(!(is_dir($tmp) && file_exists($tmp))){
+	if(!(is_dir($tmp) || (is_link($tmp) && is_dir(readlink($tmp))))){
 		$_error .= $_error_count++ . ' - ' . sprintf(g_l('start', '[tmp_path]'), ini_get('session.save_path')) . we_html_element::htmlBr();
 	}
 
@@ -261,16 +262,20 @@ if(isset($_POST['checkLogin']) && !count($_COOKIE)){
 	$_error_count = 0;
 	$tmp = ini_get('session.save_path');
 
-	if(!(is_dir($tmp) && file_exists($tmp))){
-		$_error .= $_error_count++ . ' - ' . sprintf(g_l('start', '[tmp_path]'), ini_get('session.save_path')) . we_html_element::htmlBr();
+	if(!(is_dir($tmp) || (is_link($tmp) && is_dir(readlink($tmp))))){
+		$_error .=++$_error_count . ' - ' . sprintf(g_l('start', '[tmp_path]'), ini_get('session.save_path')) . we_html_element::htmlBr();
 	}
 
 	if(!ini_get('session.use_cookies')){
-		$_error .= $_error_count++ . ' - ' . g_l('start', '[use_cookies]') . we_html_element::htmlBr();
+		$_error .=++$_error_count . ' - ' . g_l('start', '[use_cookies]') . we_html_element::htmlBr();
 	}
 
 	if(ini_get('session.cookie_path') != '/'){
-		$_error .= $_error_count++ . ' - ' . sprintf(g_l('start', '[cookie_path]'), ini_get('session.cookie_path')) . we_html_element::htmlBr();
+		$_error .=++$_error_count . ' - ' . sprintf(g_l('start', '[cookie_path]'), ini_get('session.cookie_path')) . we_html_element::htmlBr();
+	}
+
+	if($_error_count == 0){
+		$_error .=++$_error_count . ' - ' . g_l('start', '[login_session_terminated]') . we_html_element::htmlBr();
 	}
 
 	if($_error_count == 1){

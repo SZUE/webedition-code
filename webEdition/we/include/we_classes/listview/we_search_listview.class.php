@@ -84,36 +84,42 @@ class we_search_listview extends listviewBase{
 		// correct order
 		$orderArr = array();
 		if($this->order){
+			$random = false;
 			if($this->order == "we_id" || $this->order == "we_creationdate" || $this->order == "we_filename"){
 
-				$ord = str_replace("we_id", INDEX_TABLE . ".DID" . ($this->desc ? " DESC" : "") . "," . INDEX_TABLE . ".OID" . ($this->desc ? " DESC" : ""), $this->order);
-				//$ord = str_replace("we_creationdate",INDEX_TABLE . ".CreationDate",$ord);
+				$ord = str_replace('we_id', INDEX_TABLE . ".DID" . ($this->desc ? " DESC" : "") . "," . INDEX_TABLE . ".OID" . ($this->desc ? " DESC" : ""), $this->order);
+				//$ord = str_replace("we_creationdate",FILE_TABLE . ".CreationDate",$ord); // NOTE: this won't work, cause Indextable doesn't know this field & filetable is not used in this query
+				$ord = str_replace('we_creationdate','');
 				$this->order = str_replace("we_filename", INDEX_TABLE . ".Path", $ord);
 			} else{
 				$orderArr1 = makeArrayFromCSV($this->order);
-				foreach($orderArr1 as $o){
-					if(trim($o)){
-						$foo = preg_split('/ +/', $o);
-						$oname = $foo[0];
-						$otype = isset($foo[1]) ? $foo[1] : "";
-						array_push($orderArr, array("oname" => $oname, "otype" => $otype));
+				if (in_array('random()', $orderArr1)) {
+					$random = true;
+				} else{
+					foreach($orderArr1 as $o){
+						if(trim($o)){
+							$foo = preg_split('/ +/', $o);
+							$oname = $foo[0];
+							$otype = isset($foo[1]) ? $foo[1] : "";
+							array_push($orderArr, array("oname" => $oname, "otype" => $otype));
+						}
 					}
-				}
-				$this->order = "";
-				foreach($orderArr as $o){
-					if($o["oname"] == "Title" ||
-						$o["oname"] == "Path" ||
-						$o["oname"] == "Text" ||
-						$o["oname"] == "OID" ||
-						$o["oname"] == "DID" ||
-						$o["oname"] == "ID" ||
-						$o["oname"] == "Workspace" ||
-						$o["oname"] == "Description"){
+					$this->order = "";
+					foreach($orderArr as $o){
+						if($o["oname"] == "Title" ||
+							$o["oname"] == "Path" ||
+							$o["oname"] == "Text" ||
+							$o["oname"] == "OID" ||
+							$o["oname"] == "DID" ||
+							$o["oname"] == "ID" ||
+							$o["oname"] == "Workspace" ||
+							$o["oname"] == "Description"){
 
-						$this->order .= $o["oname"] . ((trim(strtolower($o["otype"])) == "desc") ? " DESC" : "") . ",";
+							$this->order .= $o["oname"] . ((trim(strtolower($o["otype"])) == "desc") ? " DESC" : "") . ",";
+						}
 					}
+					$this->order = rtrim($this->order, ',');
 				}
-				$this->order = rtrim($this->order, ',');
 			}
 		}
 
@@ -152,7 +158,7 @@ class we_search_listview extends listviewBase{
 		$spalten = array(INDEX_TABLE . "." . $searchfield);
 		reset($bedingungen);
 		while(list($k1, $v1) = each($bedingungen)) {
-			if(preg_match('^[-\+]|', $v1)){
+			if(preg_match('|^[-\+]|', $v1)){
 				$not = (preg_match('|^-|', $v1)) ? 'NOT ' : '';
 				$bed = preg_replace('|^[-\+]|', '', $v1);
 				$klammer = array();
@@ -212,7 +218,7 @@ class we_search_listview extends listviewBase{
 		$this->DB_WE->query($q);
 		$this->anz_all = $this->DB_WE->num_rows();
 
-		if($this->order == "random()"){
+		if($random){
 			$q = "SELECT " . INDEX_TABLE . ".Category as Category, " . INDEX_TABLE . ".DID as DID," . INDEX_TABLE . ".OID as OID," . INDEX_TABLE . ".ClassID as ClassID," . INDEX_TABLE . ".Text as Text," . INDEX_TABLE . ".Workspace as Workspace," . INDEX_TABLE . ".WorkspaceID as WorkspaceID," . INDEX_TABLE . ".Title as Title," . INDEX_TABLE . ".Description as Description," . INDEX_TABLE . ".Path as Path," . INDEX_TABLE . ".Language as Language, RAND() as RANDOM FROM " . INDEX_TABLE . " WHERE $bedingung_sql $dtcl_query $cat_tail $ws_where $where_lang $weDocumentCustomerFilter_tail ORDER BY RANDOM" . (($this->maxItemsPerPage > 0) ? (" limit " . abs($this->start) . "," . abs($this->maxItemsPerPage)) : "");
 		} else{
 			$q = "SELECT " . INDEX_TABLE . ".Category as Category, " . INDEX_TABLE . ".DID as DID," . INDEX_TABLE . ".OID as OID," . INDEX_TABLE . ".ClassID as ClassID," . INDEX_TABLE . ".Text as Text," . INDEX_TABLE . ".Workspace as Workspace," . INDEX_TABLE . ".WorkspaceID as WorkspaceID," . INDEX_TABLE . ".Title as Title," . INDEX_TABLE . ".Description as Description," . INDEX_TABLE . ".Path as Path," . INDEX_TABLE . ".Language as Language, $ranking as ranking FROM " . INDEX_TABLE . " WHERE $bedingung_sql $dtcl_query $cat_tail $ws_where $where_lang $weDocumentCustomerFilter_tail ORDER BY ranking" . ($this->order ? ("," . $this->order) : "") . (($this->maxItemsPerPage > 0) ? (" limit " . abs($this->start) . "," . abs($this->maxItemsPerPage)) : "");

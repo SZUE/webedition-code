@@ -25,13 +25,16 @@
 function we_isFieldNotEmpty($attribs){
 	$type = weTag_getAttribute('type', $attribs);
 	$match = weTag_getAttribute('match', $attribs);
+	$orig_match = $match;
+	$match = ($GLOBALS['lv']->f($match) ? $match : we_tag_getPostName($match));
+
 	switch($type){
 		case 'calendar' :
 			if(isset($GLOBALS['lv']->calendar_struct)){
 				if($GLOBALS['lv']->calendar_struct['date'] < 0 || count($GLOBALS['lv']->calendar_struct['storage']) < 1){
 					return false;
 				}
-				switch($match){
+				switch($orig_match){
 					case 'day':
 						$sd = mktime(
 							0, 0, 0, $GLOBALS['lv']->calendar_struct['month_human'], $GLOBALS['lv']->calendar_struct['day_human'], $GLOBALS['lv']->calendar_struct['year_human']);
@@ -60,16 +63,16 @@ function we_isFieldNotEmpty($attribs){
 		case 'multiobject' :
 			if(isset($GLOBALS['lv'])){
 				if(isset($GLOBALS['lv']->object)){
-					$data = unserialize($GLOBALS['lv']->object->DB_WE->Record['we_' . $match]);
+					$data = unserialize($GLOBALS['lv']->object->DB_WE->Record['we_' . $orig_match]);
 				} else{
 					if($GLOBALS['lv']->ClassName == 'we_listview_shoppingCart'){//Bug #4827
 						$data = unserialize($GLOBALS['lv']->f($match));
 					} else{
-						$data = unserialize($GLOBALS['lv']->DB_WE->Record['we_' . $match]);
+						$data = unserialize($GLOBALS['lv']->DB_WE->Record['we_' . $orig_match]);
 					}
 				}
 			} else{
-				$data = unserialize($GLOBALS['we_doc']->getElement($match));
+				$data = unserialize($GLOBALS['we_doc']->getElement($orig_match));
 			}
 			if(isset($data['objects']) && is_array($data['objects']) && sizeof($data['objects']) > 0){
 				$test = array_count_values($data['objects']);
@@ -77,7 +80,11 @@ function we_isFieldNotEmpty($attribs){
 			}
 			return false;
 		case 'object' : //Bug 3837: erstmal die Klasse rausfinden um auf den Eintrag we_we_object_X zu kommen
+			if($GLOBALS['lv']->ClassName == 'we_listview'){ // listview/document with objects included using we:object
+				return $GLOBALS['lv']->f($match);
+			}
 			$objectdb = new DB_WE();
+			$match = strpos($orig_match ,'/') === false ? $orig_match : substr(strrchr($orig_match,'/'),1);
 			$objectid = f('SELECT ID FROM ' . OBJECT_TABLE . " WHERE Text='" . $match . "'", 'ID', $objectdb);
 			return $GLOBALS['lv']->f('we_object_' . $objectid);
 		case 'checkbox' :
@@ -85,9 +92,8 @@ function we_isFieldNotEmpty($attribs){
 		case 'img' :
 		case 'flashmovie' :
 		case 'quicktime' :
-			return $GLOBALS['lv']->f(we_tag_getPostName($match));
+			return $GLOBALS['lv']->f($match);
 		case 'href' :
-			$match = we_tag_getPostName($match);
 			if($GLOBALS['lv']->ClassName == 'we_listview_object' || $GLOBALS['lv']->ClassName == 'we_objecttag'){
 				$hrefArr = $GLOBALS['lv']->f($match) ? unserialize($GLOBALS['lv']->f($match)) : array();
 				if(!is_array($hrefArr)){
@@ -99,6 +105,11 @@ function we_isFieldNotEmpty($attribs){
 				}
 				return (bool) $hreftmp;
 			}
+			
+			// we must check $match . '_we_jkhdsf_int' for block-Postfix instead of $match (which exists only for href type = ext): #6422
+			$isInBlock = ( $GLOBALS['lv']->f($orig_match . '_we_jkhdsf_int') || $GLOBALS['lv']->f($orig_match) )? false : true;
+			$match = $isInBlock ? we_tag_getPostName($orig_match) : $orig_match; 
+			
 			$int = ($GLOBALS['lv']->f($match . '_we_jkhdsf_int') == '') ? 0 : $GLOBALS['lv']->f($match . '_we_jkhdsf_int');
 			if($int){ // for type = href int
 				$intID = $GLOBALS['lv']->f($match . '_we_jkhdsf_intID');
@@ -111,7 +122,7 @@ function we_isFieldNotEmpty($attribs){
 			}
 			break;//see return of function
 		default :
-			$match = we_tag_getPostName($match);
+		return $GLOBALS['lv']->f($match) != '';
 			$_tmp = @unserialize($GLOBALS['lv']->f($match));
 			if(is_array($_tmp)){
 				return count($_tmp) > 0;

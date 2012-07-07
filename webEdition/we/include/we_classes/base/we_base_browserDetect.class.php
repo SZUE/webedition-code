@@ -247,6 +247,10 @@ class we_base_browserDetect{
 		return self::inst()->getBrowser() == self::FF;
 	}
 
+	static function isCHROME(){
+		return self::inst()->getBrowser() == self::CHROME;
+	}
+
 	static function isMAC(){
 		return self::inst()->getSystem() == self::SYS_MAC;
 	}
@@ -257,6 +261,10 @@ class we_base_browserDetect{
 
 	static function isWin(){
 		return self::inst()->getSystem() == self::SYS_WIN;
+	}
+	
+	static function getIEVersion(){
+		return self::isIE() ? intval(trim(self::$v)) : -1;
 	}
 
 	function getBrowserVersion(){

@@ -34,7 +34,8 @@
 
 function we_parse_tag_block($attribs, $content){
 	$GLOBALS['blkCnt'] = (isset($GLOBALS['blkCnt']) ? $GLOBALS['blkCnt'] + 1 : 0);
-	eval('$arr = ' . str_replace('$', '\$', $attribs) . ';');
+	$arr = array();
+	eval('$arr = ' . ((defined('PHPLOCALSCOPE') && PHPLOCALSCOPE) ? str_replace('$', '\$', $attribs) : $attribs) . ';'); //Bug #6516
 	if(($foo = attributFehltError($arr, 'name', __FUNCTION__)))
 		return $foo;
 
@@ -43,7 +44,7 @@ function we_parse_tag_block($attribs, $content){
 		$content = str_replace('\$', '$', $content);
 	}
 	$blockName = weTag_getParserAttribute('name', $arr);
-	$name = str_replace(array('$', '.', '/', 0, 1, 2, 3, 4, 5, 6, 7, 8, 9), array('_', '_', '_'), md5($blockName)) . $GLOBALS['blkCnt'];
+	$name = str_replace(array('$', '.', '/', 0, 1, 2, 3, 4, 5, 6, 7, 8, 9), '', md5($blockName)) . $GLOBALS['blkCnt'];
 	$ctlPre = '<?php if($GLOBALS[\'we_editmode\']){echo we_tag_blockControls(';
 	$ctlPost = ');}?>';
 
@@ -59,7 +60,7 @@ function we_parse_tag_block($attribs, $content){
 	//here postTagName is explicitly needed, because the control-element is not "inside" the block-tag (no block defined/first element) but controls its elements
 	return '<?php if(($block_' . $name . '=' . we_tag_tagParser::printTag('block', $attribs) . ')!==false){' . "\n\t" .
 		'while(we_condition_tag_block($block_' . $name . ')){?>' . $content . '<?php }}else{?>' .
-		$ctlPre . 'array(\'name\'=>\'' . $blockName . '\'.(isset($GLOBALS[\'postTagName\'])?$GLOBALS[\'postTagName\']:\'\'),\'pos\'=>0,\'listSize\'=>0,' .
+		$ctlPre . 'array(\'name\'=>we_tag_getPostName(\'' . $blockName . '\'),\'pos\'=>0,\'listSize\'=>0,' .
 		'\'ctlShowSelect\'=>' . (weTag_getParserAttribute('showselect', $arr, true, true) ? 'true' : 'false') . ',' .
 		'\'ctlShow\'=>' . (int) weTag_getParserAttribute('limit', $arr, 10) . ')' . $ctlPost .
 		'<?php }unset($block_' . $name . ');?>';
@@ -98,10 +99,10 @@ function we_tag_block($attribs){
 
 	if($list){
 		$list = unserialize($list);
-		if(count($list) && ((count($list)-1) != max(array_keys($list)))){
+		if(count($list) && ((count($list) - 1) != max(array_keys($list)))){
 			//reorder list!
 			$list = array_values($list);
-			$GLOBALS['we_doc']->setElement($name,serialize($list));
+			$GLOBALS['we_doc']->setElement($name, serialize($list));
 		}
 	} else if($start){
 		$list = array();
@@ -151,7 +152,7 @@ function we_tag_blockControls($attribs, $content = ''){
 		return '';
 	}
 	if(!isset($attribs['ctlName'])){
-		$attribs['ctlName'] = md5(uniqid(time()));
+		$attribs['ctlName'] = md5(str_replace('.', '', uniqid('', true))); // #6590, changed from: uniqid(time())
 	}
 
 	if($attribs['pos'] < $attribs['listSize']){
@@ -180,7 +181,7 @@ function we_tag_blockControls($attribs, $content = ''){
 				we_button::create_button('image:btn_direction_down', '', true, -1, -1, '', '', true) :
 				//enabled downBtn
 				we_button::create_button('image:btn_direction_down', "javascript:setScrollTo();_EditorFrame.setEditorIsHot(true);we_cmd('down_entry_at_list','" . $attribs['name'] . "','" . $attribs['pos'] . "'," . $jsSelector . ")"));
-		$tabArray[] = we_button::create_button('image:btn_function_trash', "javascript:setScrollTo();_EditorFrame.setEditorIsHot(true);we_cmd('delete_list','" . $attribs['name'] . "','" . $attribs['pos'] . "','" . $attribs['name'] . "',1)");
+		$tabArray[] = we_button::create_button('image:btn_function_trash', "javascript:setScrollTo();_EditorFrame.setEditorIsHot(true);we_cmd('delete_list','" . $attribs['name'] . "','" . $attribs['pos'] . "','" . $GLOBALS['postTagName'] . "',1)");
 
 		return we_button::create_button_table($tabArray, 5);
 	} else{

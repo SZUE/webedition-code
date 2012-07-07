@@ -72,7 +72,7 @@ function we_tag($name, $attribs = array(), $content = ''){
 	$user = weTag_getAttribute('user', $attribs);
 
 	//make sure comment attribute is never shown
-	if($name == 'setVar'){//special handling inside this tag
+	if($name == 'setVar' || $name == 'xmlnode'){//special handling inside tag setVar and xmlnode
 		$attribs = removeAttribs($attribs, array('cachelifetime', 'comment', 'user'));
 		$nameTo = '';
 		$to = 'screen';
@@ -418,7 +418,7 @@ function we_getInputChoiceField($name, $value, $values, $atts, $mode, $valuesIsH
 function we_getInputCheckboxField($name, $value, $attr){
 	//  returns a checkbox with associated hidden-field
 
-	$tmpname = md5(uniqid(time()));
+	$tmpname = md5(str_replace('.', '', uniqid('',true))); // #6590, changed from: uniqid(time())
 	if($value){
 		$attr['checked'] = 'checked';
 	}

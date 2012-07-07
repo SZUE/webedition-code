@@ -242,10 +242,10 @@ class we_objectFile extends we_document{
 			$db = new DB_WE();
 		}
 		$rootId = $classId;
+		$cnt = 1;
 		$all = array();
 		if(defined('OBJECT_TABLE')){
 			$slash = PHP_INT_MAX;
-			$cnt = 1;
 			$ws = get_ws(OBJECT_FILES_TABLE);
 			if(intval($ws) == 0){
 				$ws = 0;
@@ -263,7 +263,7 @@ class we_objectFile extends we_document{
 				}
 			}
 		}
-		return ($cnt == 1) ? $rootId : $all[substr($path, 0, strrpos($path, '/'))];
+		return ($cnt == 1) ? $rootId : $all[$path];
 	}
 
 	function formCopyDocument(){
@@ -779,23 +779,27 @@ class we_objectFile extends we_document{
 	}
 
 	static function getSortArray($tableID, $db){
-		$order = makeArrayFromCSV(f('SELECT strOrder FROM ' . OBJECT_TABLE . ' WHERE ID=' . (int) $tableID, 'strOrder', $db));
-		$ctable = OBJECT_X_TABLE . $tableID;
-		$tableInfo = $db->metadata($ctable);
-		$fields = array();
-		foreach($tableInfo as $info){
-			if(preg_match('/(.+?)_(.*)/', $info["name"], $regs)){
-				if($regs[1] != "OF" && $regs[1] != "variant"){
-					$fields[] = array("name" => $regs[2], "type" => $regs[1], "length" => $info["len"]);
+		if($tableID){
+			$order = makeArrayFromCSV(f('SELECT strOrder FROM ' . OBJECT_TABLE . ' WHERE ID=' . (int) $tableID, 'strOrder', $db));
+			$ctable = OBJECT_X_TABLE . $tableID;
+			$tableInfo = $db->metadata($ctable);
+			$fields = array();
+			foreach($tableInfo as $info){
+				if(preg_match('/(.+?)_(.*)/', $info["name"], $regs)){
+					if($regs[1] != "OF" && $regs[1] != "variant"){
+						$fields[] = array("name" => $regs[2], "type" => $regs[1], "length" => $info["len"]);
+					}
 				}
 			}
-		}
-
-		if(count($order) != count($fields)){
-			$order = array();
-			for($y = 0; $y < count($fields); $y++){
-				$order[$y] = $y;
+	
+			if(count($order) != count($fields)){
+				$order = array();
+				for($y = 0; $y < count($fields); $y++){
+					$order[$y] = $y;
+				}
 			}
+		} else {
+			$order = array();
 		}
 		return $order;
 	}
@@ -1013,7 +1017,7 @@ class we_objectFile extends we_document{
 			$editObjectButtonDis = we_button::create_button("image:btn_edit_object", "", true, 44, 22, "", "", true);
 			$inputWidth = 443;
 
-			$uniq = uniqid('');
+			$uniq = uniqid(''); // FIXME: #6590: str_replace('.', '', uniqid("",true))
 			$openCloseButton = we_multiIconBox::_getButton($uniq, "weToggleBox('$uniq','','')", "down", g_l('global', "[openCloseBox]"));
 			$openCloseButtonDis = we_html_tools::getPixel(21, 1);
 
@@ -1062,7 +1066,7 @@ class we_objectFile extends we_document{
 		} else{
 
 			$content = '';
-			$uniq = uniqid('');
+			$uniq = uniqid(''); // FIXME: #6590: str_replace('.', '', uniqid("",true))
 			$txt = $ob->Text ? $ob->Text : $name;
 			$but = we_multiIconBox::_getButton($uniq, "weToggleBox('$uniq','" . $txt . "','" . $txt . "')", "down", g_l('global', "[openCloseBox]"));
 			$content .= we_button::create_button_table(
@@ -1125,14 +1129,14 @@ class we_objectFile extends we_document{
 					$ob = new we_objectFile();
 					$ob->initByID($myid, OBJECT_FILES_TABLE);
 					$ob->DefArray = $ob->getDefaultValueArray();
-					$uniq = uniqid('');
+					$uniq = uniqid(''); // FIXME: #6590: str_replace('.', '', uniqid("",true))
 
 					$editObjectButton = we_button::create_button("image:btn_edit_object", "javascript:top.doClickDirect('" . $myid . "','objectFile','" . OBJECT_FILES_TABLE . "');");
 					$editObjectButtonDis = we_button::create_button("image:btn_edit_object", "", true, 44, 22, "", "", true);
 
 					$inputWidth = 346;
 
-					$uniq = uniqid("");
+					$uniq = uniqid(""); // FIXME: #6590: str_replace('.', '', uniqid("",true))
 
 					$openCloseButton = we_multiIconBox::_getButton($uniq, "weToggleBox('$uniq','','')", "right", g_l('global', "[openCloseBox]"));
 					$openCloseButtonDis = we_html_tools::getPixel(21, 1);
@@ -1213,7 +1217,7 @@ class we_objectFile extends we_document{
 				for($f = 0; $f < $show; $f++){
 					$myid = $objects[$f];
 					if($myid){
-						$uniq = uniqid('');
+						$uniq = uniqid(''); // FIXME: #6590: str_replace('.', '', uniqid("",true))
 						$ob = new we_objectFile();
 						$ob->initByID($myid, OBJECT_FILES_TABLE);
 						$ob->DefArray = $ob->getDefaultValueArray();
@@ -2396,7 +2400,8 @@ class we_objectFile extends we_document{
 		return true;
 	}
 
-	function setLanguage(){
+	function setLanguage($language){
+		$this->Language = isset($language) ? $language : $this->Language;
 		$this->DB_WE->query("UPDATE " . OBJECT_X_TABLE . $this->TableID . " SET OF_Language='" . $this->Language . "' WHERE OF_ID=" . $this->ID);
 	}
 
@@ -2559,7 +2564,7 @@ class we_objectFile extends we_document{
 			$this->setLanguageLink($_REQUEST["we_" . $this->Name . "_LanguageDocID"], 'tblObjectFile', false, true);
 		} else{
 			//if language changed, we must delete eventually existing entries in tblLangLink, even if !LANGLINK_SUPPORT!
-			$this->checkRemoteLanguage($this->Table,false);
+			$this->checkRemoteLanguage($this->Table, false);
 		}
 // hook
 		if($skipHook == 0){
@@ -3043,7 +3048,7 @@ class we_objectFile extends we_document{
 				if($regs[1] == "OF"){
 					$data[$tableInfo[$i]["name"]] = (isset($this->$name) ? $this->$name : '');
 				} else{
-					$name = ($regs[1] == "object") ? ("object_" . $name) : $name;
+					$name = ($regs[1] == "object") ? ("we_object_" . $name) : $name;
 					$data[$tableInfo[$i]["name"]] = $this->getElement($name);
 				}
 			}

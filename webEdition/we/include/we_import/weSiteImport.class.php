@@ -147,7 +147,7 @@ class weSiteImport{
 	 *  @return         string
 	 */
 	function _getJS(){
-		$js = 'function we_cmd() {
+		return we_html_element::jsElement('function we_cmd() {
 					var args = "";
 					var url = "' . WEBEDITION_DIR . 'we_cmd.php?"; for(var i = 0; i < arguments.length; i++){ url += "we_cmd["+i+"]="+escape(arguments[i]); if(i < (arguments.length - 1)){ url += "&"; }}
 
@@ -181,11 +181,9 @@ class weSiteImport{
 						iframeObj.src = "/webEdition/we_cmd.php?we_cmd[0]=updateSiteImportTable&tid="+document.we_form.templateID.value;
 					}
 				}
-				';
-
-		$js = we_html_element::jsElement($js);
-		$js .= we_html_element::jsScript(JS_DIR . "windows.js");
-		$js .= we_html_element::jsElement(
+				') .
+			we_html_element::jsScript(JS_DIR . "windows.js") .
+			we_html_element::jsElement(
 				'function doUnload() {
 					if (jsWindow_count) {
 						for (i = 0; i < jsWindow_count; i++) {
@@ -193,7 +191,6 @@ class weSiteImport{
 						}
 					}
 				}');
-		return $js;
 	}
 
 	/**
@@ -328,7 +325,7 @@ class weSiteImport{
 		parent.document.getElementById("dateFormatDiv").style.display="' . ($hasDateFields ? "block" : "none") . '";
 ';
 
-		$js = we_html_element::jsElement($js) . "\n";
+		$js = we_html_element::jsElement($js);
 		return $this->_getHtmlPage("", $js);
 	}
 
@@ -364,7 +361,7 @@ class weSiteImport{
 				$_SESSION["user"]["ID"]));
 		// update session
 		$_SESSION["prefs"]["siteImportPrefs"] = $serializedData;
-		$js = '<script type="text/javascript" >parent.close();</script>';
+		$js = we_html_element::jsElement('parent.close();');
 		return $this->_getHtmlPage("", $js);
 	}
 
@@ -504,7 +501,7 @@ class weSiteImport{
 				"", "100%", $parts, 30, $buttons, -1, "", "", false, g_l('siteimport', "[importSettingsWePages]"));
 		$bodyhtml .= '</form></body>';
 
-		$js = '<script type="text/javascript" >
+		$js = we_html_element::jsElement('
 
 	function checkForm(){
 		var f = document.forms[0];
@@ -513,7 +510,7 @@ class weSiteImport{
 			// check if template is selected
 			if (f.templateID.value == "0" || f.templateID.value=="") {
 				' . we_message_reporting::getShowMessageCall(
-				g_l('siteimport', "[pleaseSelectTemplateAlert]"), we_message_reporting::WE_MESSAGE_ERROR) . '
+					g_l('siteimport', "[pleaseSelectTemplateAlert]"), we_message_reporting::WE_MESSAGE_ERROR) . '
 				return false;
 			}
 			// check value of fields
@@ -553,20 +550,20 @@ class weSiteImport{
 			}
 			if (filled == 0) {
 				' . we_message_reporting::getShowMessageCall(
-				g_l('siteimport', "[startEndMarkAlert]"), we_message_reporting::WE_MESSAGE_ERROR) . '
+					g_l('siteimport', "[startEndMarkAlert]"), we_message_reporting::WE_MESSAGE_ERROR) . '
 				return false;
 			}
 			if (document.getElementById("ownValueInput").style.display != "none") {
 				if (f.dateformatField.value.length == 0) {
 					' . we_message_reporting::getShowMessageCall(
-				str_replace('"', '\"', g_l('siteimport', "[errorEmptyDateFormat]")), we_message_reporting::WE_MESSAGE_ERROR) . '
+					str_replace('"', '\"', g_l('siteimport', "[errorEmptyDateFormat]")), we_message_reporting::WE_MESSAGE_ERROR) . '
 					return false;
 				}
 			}
 		} else {
 			if (f.templateName.value.length==0) {
 				' . we_message_reporting::getShowMessageCall(
-				g_l('siteimport', "[nameOfTemplateAlert]"), we_message_reporting::WE_MESSAGE_ERROR) . '
+					g_l('siteimport', "[nameOfTemplateAlert]"), we_message_reporting::WE_MESSAGE_ERROR) . '
 				f.templateName.focus();
 				f.templateName.select();
 				return false;
@@ -574,7 +571,7 @@ class weSiteImport{
 			var reg = /[^a-z0-9\._\-]/gi;
 			if (reg.test(f.templateName.value)) {
 				' . we_message_reporting::getShowMessageCall(
-				g_l('alert', "[we_filename_notValid]"), we_message_reporting::WE_MESSAGE_ERROR) . '
+					g_l('alert', "[we_filename_notValid]"), we_message_reporting::WE_MESSAGE_ERROR) . '
 				f.templateName.focus();
 				f.templateName.select();
 				return false;
@@ -598,10 +595,8 @@ class weSiteImport{
 	function showDateHelp() {
 		// this is a real alert, dont use showMessage yet
 		' . we_message_reporting::getShowMessageCall(
-				g_l('import', '[format_timestamp]'), we_message_reporting::WE_MESSAGE_INFO) . '
-	}
-
-</script>';
+					g_l('import', '[format_timestamp]'), we_message_reporting::WE_MESSAGE_INFO) . '
+	}');
 
 		return $this->_getHtmlPage($bodyhtml, $this->_getJS() . $js);
 	}
@@ -956,15 +951,15 @@ class weSiteImport{
 			if(count($this->_files) == 0){
 				$importDirectory = rtrim(rtrim($_SERVER['DOCUMENT_ROOT'], '/') . $this->from, '/');
 				if(count(scandir($importDirectory)) <= 2){
-					return '<script type="text/javascript>alert(\'' . addslashes(
-							g_l('importFiles', "[emptyDir]")) . '\');top.close()</script>';
+					return we_html_element::jsElement('alert(\'' . addslashes(
+								g_l('importFiles', "[emptyDir]")) . '\');top.close()');
 				} else{
-					return '<script type="text/javascript>alert(\'' . addslashes(
-							g_l('importFiles', "[noFiles]")) . '\');top.close()</script>';
+					return we_html_element::jsElement('alert(\'' . addslashes(
+								g_l('importFiles', "[noFiles]")) . '\');top.close();');
 				}
 			}
 			$fr = new siteimportFrag($this);
-			return "";
+			return '';
 		}
 
 		$bodyAttribs = array(
@@ -1730,9 +1725,7 @@ class weSiteImport{
 		// get Data of File
 		//if (!is_dir($path) && filesize($path) > 0) {
 		if(!is_dir($path) && filesize($path) > 0 && $contentType != 'image/*' && $contentType != 'application/*' && $contentType != 'application/x-shockwave-flash' && $contentType != 'movie/quicktime'){// #5295
-			$fp = fopen($path, "rb");
-			$data = fread($fp, filesize($path));
-			fclose($fp);
+			$data = weFile::load($path);
 		}
 
 		$we_ContentType = $contentType;

@@ -81,7 +81,7 @@ abstract class we_class{
 	/* Constructor */
 
 	function __construct(){
-		$this->Name = uniqid();
+		$this->Name = uniqid(); //FIXME: #6590: str_replace('.', '', uniqid("",true))"
 		array_push($this->persistent_slots, "ClassName", "Name", "ID", "Table", "wasUpdate", "InWebEdition");
 		$this->DB_WE = new DB_WE;
 	}
@@ -366,7 +366,7 @@ abstract class we_class{
 	}
 
 	function formInput2($width, $name, $size = 25, $type = "txt", $attribs = ""){
-		return $this->formInputField($type, $name, (g_l('weClass', '[' . $name . ']') != false ? g_l('weClass', '[' . $name . ']') : $name), $size, $width, "", $attribs);
+		return $this->formInputField($type, $name, (g_l('weClass', '[' . $name . ']',true) != false ? g_l('weClass', '[' . $name . ']') : $name), $size, $width, "", $attribs);
 	}
 
 	/* creates a text-input field for entering Data that will be stored at the $elements Array and shows information from another Element */

@@ -144,10 +144,8 @@ class we_textContentDocument extends we_textDocument{
 		} else{
 			$title = '';
 		}
-		$tempname = TEMP_PATH . "/" . uniqid(md5(time()));
-		$fp = fopen($tempname, "wb");
-		fputs($fp, $code);
-		fclose($fp);
+		$tempname = TEMP_PATH . "/" . uniqid(md5(time())); // FIXME: #6590: str_replace('.', '', uniqid("",true))
+		weFile::save($tempname, $code);
 		$metas = get_meta_tags($tempname);
 		unlink($tempname);
 		$metas["title"] = $title;

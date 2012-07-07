@@ -4,7 +4,7 @@ $l_sidebar=array(
 	'admin'=>array(
 		'0'=>array(
 			'headline'=>'Sivupalkin asetukset',
-			'link'=>'javascript:top.we_cmd(`openPreferences`);',
+			'link'=>'javascript:top.we_cmd("openPreferences");',
 			'text'=>'L�yd�t sivupalkin asetukset, kuten yksil�llisen aloitussivun ja mitta-asetukset valikosta extrat> asetukset > yleiset ... "K�ytt�liittym�" v�lilehdelt�',
 	),),
 	'confirm_to_close_sidebar'=>'Haluatko varmasti sulkea sivupalkin?',
@@ -23,13 +23,13 @@ $l_sidebar=array(
 		'2'=>array(
 			'headline'=>'Muita tiedonl�hteit�',
 			'icon'=>'help.gif',
-			'link'=>'javascript:top.we_cmd(`help`);',
+			'link'=>'javascript:top.we_cmd("help");',
 			'text'=>'Katsaus muista tiedonl�hteist�',
 		),
 		'3'=>array(
 			'headline'=>'Tagi hakemisto',
 			'icon'=>'firststepswizard.gif',
-			'link'=>'http://tags.webedition.org/wiki/en/',
+			'link'=>'http://webedition.org/de/webedition-cms/dokumentation/tag-referenz/',
 			'text'=>'Here you will find a list of all webEdition we:Tags with attributes and examples.',
 		),
 		'4'=>array(

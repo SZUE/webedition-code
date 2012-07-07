@@ -23,7 +23,7 @@
  */
 require_once($_SERVER['DOCUMENT_ROOT'] . '/webEdition/we/include/we.inc.php');
 
-we_html_tools::protect();
+we_html_tools::protect(array('BROWSE_SERVER', 'ADMINISTRATOR'));
 
 $supportDebuggingFile = $_SERVER['DOCUMENT_ROOT'] . "/webEdition/we_sselector_inc.php";
 $supportDebugging = false;
@@ -192,7 +192,7 @@ function _cutText($text, $l){
 				}
 				$dir_obj->close();
 			} else{
-				print '<script  type="text/javascript">' . we_message_reporting::getShowMessageCall(g_l('alert', "[access_denied]"), we_message_reporting::WE_MESSAGE_ERROR) . '</script><br><br><div class="middlefontgray" align="center">-- ' . g_l('alert', "[access_denied]") . ' --</div>';
+				print we_html_element::jsElement(we_message_reporting::getShowMessageCall(g_l('alert', "[access_denied]"), we_message_reporting::WE_MESSAGE_ERROR)) . '<br><br><div class="middlefontgray" align="center">-- ' . g_l('alert', "[access_denied]") . ' --</div>';
 			}
 
 			switch($_REQUEST["ord"]){
@@ -219,19 +219,17 @@ function _cutText($text, $l){
 				array_push($final, $arFile[$key]);
 			}
 
-			print '<script type="text/javascript">
+			print '<script type="text/javascript"><!--
 top.allentries = new Array();
 var i = 0;
 ';
 			foreach($final as $key => $entry){
-				print 'top.allentries[i++] = "' . $entry . '"' . "\n";
+				print 'top.allentries[i++] = "' . $entry . '"';
 			}
-			print '</script>
-';
+			print '//--></script>';
 			$set_rename = false;
 
-			if(isset($_REQUEST["nf"]) && $_REQUEST["nf"] == "new_folder"){
-				?>
+			if(isset($_REQUEST["nf"]) && $_REQUEST["nf"] == "new_folder"){?>
 				<tr style="background-color:#DFE9F5;">
 					<td align="center" width="25"><img src="<?php print ICON_DIR ?>folder.gif" width="16" height="18" border="0"></td>
 					<td class="selector" width="200"><?php print we_html_tools::htmlTextInput("txt", 20, g_l('fileselector', "[new_folder_name]"), "", 'id="txt" onblur="setScrollTo();we_form.submit();" onkeypress="keypressed(event)"', "text", "100%"); ?></td>
@@ -251,12 +249,12 @@ var i = 0;
 				$type = $isfolder ? g_l('contentTypes', '[folder]') : getDataType($dir . "/" . $entry);
 
 				$indb = $DB_WE->next_record() ? true : false;
-				if($entry == "webEdition")
+				if($entry == "webEdition"|| (preg_match('|^' . $_SERVER['DOCUMENT_ROOT'] . '/?webEdition/|', $dir) || preg_match('|^' . $_SERVER['DOCUMENT_ROOT'] . '/?webEdition$|', $dir)) && (!preg_match('|^' . $_SERVER['DOCUMENT_ROOT'] . '/?webEdition/we_backup|', $dir) || $entry == "download" || $entry == "tmp")){
 					$indb = true;
-				if((preg_match('|^' . $_SERVER['DOCUMENT_ROOT'] . '/?webEdition/|', $dir) || preg_match('|^' . $_SERVER['DOCUMENT_ROOT'] . '/?webEdition$|', $dir)) && (!preg_match('|^' . $_SERVER['DOCUMENT_ROOT'] . '/?webEdition/we_backup|', $dir) || $entry == "download" || $entry == "tmp"))
-					$indb = true;
-				if($supportDebugging)
+				}
+				if($supportDebugging){
 					$indb = false;
+				}
 				$show = ($entry != ".") && ($entry != "..") && (($_REQUEST["fil"] == g_l('contentTypes', '[all_Types]')) || ($type == g_l('contentTypes', '[folder]')) || ($type == $_REQUEST["fil"] || $_REQUEST["fil"] == ""));
 				$bgcol = ($_REQUEST["curID"] == ($dir . "/" . $entry) && (!( isset($_REQUEST["nf"]) && $_REQUEST["nf"] == "new_folder"))) ? "#DFE9F5" : "white";
 				$onclick = "";

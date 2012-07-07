@@ -120,42 +120,47 @@ class we_listview extends listviewBase{
 		$this->numorder = $numorder;
 		$this->hidedirindex = $hidedirindex;
 		$this->order = explode(',', trim($this->order));
-
-		$order = array();
-		foreach($this->order as $ord){
-			switch(trim($ord)){
-				case 'we_id':
-					$order[] = FILE_TABLE . '.ID' . ($this->desc ? ' DESC' : '');
-					break;
-				case 'we_creationdate':
-					$order[] = FILE_TABLE . '.CreationDate' . ($this->desc ? ' DESC' : '');
-					break;
-				case 'we_path':
-					$order[] = FILE_TABLE . '.Path' . ($this->desc ? ' DESC' : '');
-					break;
-				case 'we_filename':
-					$order[] = FILE_TABLE . '.Text' . ($this->desc ? ' DESC' : '');
-					break;
-				case 'we_moddate':
-					$order[] = FILE_TABLE . '.ModDate' . ($this->desc ? ' DESC' : '');
-					break;
-				case 'we_published':
-					$order[] = FILE_TABLE . '.Published' . ($this->desc ? ' DESC' : '');
-					break;
-				case '':
-					break;
-				default:
-					if($this->search){
-						$order[] = 'ranking';
-						$order[] = '(SELECT cc.Dat FROM ' . LINK_TABLE . ' ll, ' . CONTENT_TABLE . ' cc WHERE ll.DID = '.FILE_TABLE.'.ID AND ll.DocumentTable = "' . stripTblPrefix(FILE_TABLE) . '" AND ll.Name = "' . $this->DB_WE->escape($ord) . '" AND ll.CID = cc.ID)' . ($this->desc ? ' DESC' : '');
-					} else{
-						$order[] = '(SELECT ' . ($this->numorder ? '0+' : '') . 'cc.Dat FROM ' . LINK_TABLE . ' ll, ' . CONTENT_TABLE . ' cc WHERE ll.DID = '.FILE_TABLE.'.ID AND ll.DocumentTable = "' . stripTblPrefix(FILE_TABLE) . '" AND ll.Name = "' . $this->DB_WE->escape($ord) . '" AND ll.CID = cc.ID)' . ($this->desc ? ' DESC' : '');
-					}
-					break;
+		$random = false; 
+		
+		if (in_array('random()', $this->order)) {
+			$random = true;
+		} else{
+			$order = array();
+			foreach($this->order as $ord){
+				switch(trim($ord)){
+					case 'we_id':
+						$order[] = FILE_TABLE . '.ID' . ($this->desc ? ' DESC' : '');
+						break;
+					case 'we_creationdate':
+						$order[] = FILE_TABLE . '.CreationDate' . ($this->desc ? ' DESC' : '');
+						break;
+					case 'we_path':
+						$order[] = FILE_TABLE . '.Path' . ($this->desc ? ' DESC' : '');
+						break;
+					case 'we_filename':
+						$order[] = FILE_TABLE . '.Text' . ($this->desc ? ' DESC' : '');
+						break;
+					case 'we_moddate':
+						$order[] = FILE_TABLE . '.ModDate' . ($this->desc ? ' DESC' : '');
+						break;
+					case 'we_published':
+						$order[] = FILE_TABLE . '.Published' . ($this->desc ? ' DESC' : '');
+						break;
+					case '':
+						break;
+					default:
+						if($this->search){
+							$order[] = 'ranking';
+							$order[] = '(SELECT cc.Dat FROM ' . LINK_TABLE . ' ll, ' . CONTENT_TABLE . ' cc WHERE ll.DID = ' . FILE_TABLE . '.ID AND ll.DocumentTable = "' . stripTblPrefix(FILE_TABLE) . '" AND ll.Name = "' . $this->DB_WE->escape($ord) . '" AND ll.CID = cc.ID)' . ($this->desc ? ' DESC' : '');
+						} else{
+							$order[] = '(SELECT ' . ($this->numorder ? '0+' : '') . 'cc.Dat FROM ' . LINK_TABLE . ' ll, ' . CONTENT_TABLE . ' cc WHERE ll.DID = ' . FILE_TABLE . '.ID AND ll.DocumentTable = "' . stripTblPrefix(FILE_TABLE) . '" AND ll.Name = "' . $this->DB_WE->escape($ord) . '" AND ll.CID = cc.ID)' . ($this->desc ? ' DESC' : '');
+						}
+						break;
+				}
 			}
+			$orderstring = count($order) ? ' ORDER BY ' . implode(',', $order) : ''; 
 		}
-
-		$orderstring = count($order) ? ' ORDER BY ' . implode(',', $order) : '';
+		
 
 		$sql_tail = getCatSQLTail($this->cats, FILE_TABLE, $this->catOr, $this->DB_WE, 'Category', true, $this->categoryids);
 
@@ -249,7 +254,7 @@ class we_listview extends listviewBase{
 				$bedingung_sql = $bedingung_sql2;
 			}
 
-			if($this->order == 'random()'){
+			if($random){
 				$q = 'SELECT ' . FILE_TABLE . '.ID as ID, ' . FILE_TABLE . ".WebUserID as WebUserID, RAND() as RANDOM $calendar_select FROM " . FILE_TABLE . "," . LINK_TABLE . "," . CONTENT_TABLE . "," . INDEX_TABLE . " WHERE " . ($this->searchable ? " " . FILE_TABLE . ".IsSearchable=1" : "1") . " $where_lang $cond_where $ws_where AND " . FILE_TABLE . ".IsFolder=0 AND " . LINK_TABLE . ".DID=" . FILE_TABLE . ".ID AND " . LINK_TABLE . ".CID=" . CONTENT_TABLE . ".ID AND " . FILE_TABLE . ".Published > 0 AND " . LINK_TABLE . ".DocumentTable='" . stripTblPrefix(FILE_TABLE) . "' AND " . INDEX_TABLE . ".DID=" . FILE_TABLE . ".ID AND $bedingung_sql" . (($dt != "#NODOCTYPE#") ? (" AND " . FILE_TABLE . '.DocType=' . intval($dt)) : '') . ' ' . $sql_tail . $calendar_where . " GROUP BY ID ORDER BY RANDOM" . (($this->maxItemsPerPage > 0) ? (" limit " . abs($this->start) . "," . abs($this->maxItemsPerPage)) : "");
 			} else{
 				$q = 'SELECT distinct ' . FILE_TABLE . ".ID as ID, " . FILE_TABLE . ".WebUserID as WebUserID, $ranking as ranking $calendar_select FROM " . FILE_TABLE . "," . LINK_TABLE . "," . CONTENT_TABLE . "," . INDEX_TABLE . " WHERE " . ($this->searchable ? " " . FILE_TABLE . ".IsSearchable=1" : "1") . " $where_lang $cond_where $ws_where AND " . FILE_TABLE . ".IsFolder=0 AND " . LINK_TABLE . ".DID=" . FILE_TABLE . ".ID AND " . LINK_TABLE . ".CID=" . CONTENT_TABLE . ".ID AND " . FILE_TABLE . ".Published > 0 AND " . LINK_TABLE . ".DocumentTable='" . stripTblPrefix(FILE_TABLE) . "' AND " . INDEX_TABLE . ".DID=" . FILE_TABLE . ".ID AND $bedingung_sql" . (($dt != "#NODOCTYPE#") ? (" AND " . FILE_TABLE . '.DocType=' . intval($dt) ) : '') . ' ' . $sql_tail . $calendar_where . " " . $orderstring . (($this->maxItemsPerPage > 0) ? (" limit " . abs($this->start) . "," . abs($this->maxItemsPerPage)) : "");
@@ -269,7 +274,7 @@ class we_listview extends listviewBase{
 					$ws_where = " AND (" . implode(" OR ", $cond) . ")";
 				}
 			}
-			if($this->order == 'random()'){
+			if($random){
 				$q = 'SELECT ' . FILE_TABLE . '.ID as ID, ' . FILE_TABLE . ".WebUserID as WebUserID, RAND() as RANDOM $calendar_select FROM " . FILE_TABLE . "," . LINK_TABLE . "," . CONTENT_TABLE . " WHERE " . ($this->searchable ? " " . FILE_TABLE . ".IsSearchable=1" : "1") . " $where_lang $cond_where $ws_where AND " . FILE_TABLE . ".IsFolder=0 AND " . LINK_TABLE . ".DID=" . FILE_TABLE . ".ID AND " . LINK_TABLE . ".CID=" . CONTENT_TABLE . ".ID AND " . FILE_TABLE . ".Published > 0 AND " . LINK_TABLE . ".DocumentTable='" . stripTblPrefix(FILE_TABLE) . "'" . (($dt != "#NODOCTYPE#") ? (' AND ' . FILE_TABLE . '.DocType=' . intval($dt)) : '') . ' ' . $sql_tail . $calendar_where . " GROUP BY ID ORDER BY RANDOM" . (($rows > 0) ? (" limit " . abs($this->start) . "," . abs($this->maxItemsPerPage)) : "");
 			} else{
 				$q = 'SELECT distinct ' . FILE_TABLE . '.ID as ID, ' . FILE_TABLE . ".WebUserID as WebUserID $calendar_select FROM " . FILE_TABLE . "," . LINK_TABLE . "," . CONTENT_TABLE . " WHERE " . ($this->searchable ? " " . FILE_TABLE . ".IsSearchable=1" : "1") . " $where_lang $cond_where $ws_where AND " . FILE_TABLE . ".IsFolder=0 AND " . LINK_TABLE . ".DID=" . FILE_TABLE . ".ID AND " . LINK_TABLE . ".CID=" . CONTENT_TABLE . ".ID AND " . FILE_TABLE . ".Published > 0 AND " . LINK_TABLE . ".DocumentTable='" . stripTblPrefix(FILE_TABLE) . "'" . (($dt != "#NODOCTYPE#") ? (' AND ' . FILE_TABLE . '.DocType=' . intval($dt)) : '') . ' ' . $sql_tail . $calendar_where . " " . $orderstring . (($rows > 0) ? (" limit " . abs($this->start) . "," . abs($this->maxItemsPerPage)) : "");
@@ -284,7 +289,7 @@ class we_listview extends listviewBase{
 		}
 
 		while($this->DB_WE->next_record()) {
-			array_push($this->IDs, $this->DB_WE->f('ID'));
+			$this->IDs[] = $this->DB_WE->f('ID');
 			if($calendar != ''){
 				$this->calendar_struct['storage'][$this->DB_WE->f('ID')] = (int) $this->DB_WE->f('Calendar');
 			}
@@ -305,13 +310,13 @@ class we_listview extends listviewBase{
 			unset($_idListArray);
 		}
 		if($this->search){
-			if($this->order == 'random()'){
+			if($random){
 				$q = 'SELECT ' . FILE_TABLE . '.ID as ID, ' . FILE_TABLE . '.WebUserID as WebUserID, RAND() as RANDOM FROM ' . FILE_TABLE . ',' . LINK_TABLE . ',' . CONTENT_TABLE . ',' . INDEX_TABLE . ' WHERE ' . ($this->searchable ? ' ' . FILE_TABLE . '.IsSearchable=1' : '1') . " $where_lang $cond_where $ws_where AND " . FILE_TABLE . ".IsFolder=0 AND " . LINK_TABLE . ".DID=" . FILE_TABLE . ".ID AND " . LINK_TABLE . ".CID=" . CONTENT_TABLE . ".ID AND " . FILE_TABLE . ".Published > 0 AND " . LINK_TABLE . ".DocumentTable='" . stripTblPrefix(FILE_TABLE) . "' AND " . INDEX_TABLE . ".DID=" . FILE_TABLE . ".ID AND $bedingung_sql" . (($dt != "#NODOCTYPE#") ? (" AND " . FILE_TABLE . '.DocType=' . intval($dt)) : '') . $sql_tail . $calendar_where . " GROUP BY ID ORDER BY RANDOM";
 			} else{
 				$q = 'SELECT DISTINCT ' . FILE_TABLE . '.ID as ID, ' . FILE_TABLE . ".WebUserID as WebUserID, $ranking as ranking FROM " . FILE_TABLE . "," . LINK_TABLE . "," . CONTENT_TABLE . "," . INDEX_TABLE . " WHERE " . ($this->searchable ? " " . FILE_TABLE . ".IsSearchable=1" : "1") . " $where_lang $cond_where $ws_where AND " . FILE_TABLE . ".IsFolder=0 AND " . LINK_TABLE . ".DID=" . FILE_TABLE . ".ID AND " . LINK_TABLE . ".CID=" . CONTENT_TABLE . ".ID AND " . FILE_TABLE . ".Published > 0 AND " . LINK_TABLE . ".DocumentTable='" . stripTblPrefix(FILE_TABLE) . "' AND " . INDEX_TABLE . ".DID=" . FILE_TABLE . ".ID AND $bedingung_sql" . (($dt != "#NODOCTYPE#") ? (" AND " . FILE_TABLE . '.DocType=' . intval($dt)) : '') . $sql_tail . $calendar_where . " " . $orderstring;
 			}
 		} else{
-			if($this->order == 'random()'){
+			if($random){
 				$q = 'SELECT ' . FILE_TABLE . '.ID as ID, ' . FILE_TABLE . '.WebUserID as WebUserID, RAND() as RANDOM FROM ' . FILE_TABLE . ',' . LINK_TABLE . ',' . CONTENT_TABLE . ' WHERE ' . ($this->searchable ? ' ' . FILE_TABLE . '.IsSearchable=1' : '1') . " $where_lang $cond_where $ws_where AND " . FILE_TABLE . ".IsFolder=0 AND " . LINK_TABLE . ".DID=" . FILE_TABLE . ".ID AND " . LINK_TABLE . ".CID=" . CONTENT_TABLE . ".ID AND " . FILE_TABLE . ".Published > 0 AND " . LINK_TABLE . ".DocumentTable='" . stripTblPrefix(FILE_TABLE) . "'" . (($dt != "#NODOCTYPE#") ? (" AND " . FILE_TABLE . '.DocType=' . intval($dt)) : '') . ' ' . $sql_tail . $calendar_where . " GROUP BY ID ORDER BY RANDOM";
 			} else{
 				$q = 'SELECT DISTINCT ' . FILE_TABLE . '.ID as ID, ' . FILE_TABLE . '.WebUserID as WebUserID FROM ' . FILE_TABLE . ',' . LINK_TABLE . ',' . CONTENT_TABLE . ' WHERE ' . ($this->searchable ? ' ' . FILE_TABLE . '.IsSearchable=1' : '1') . " $where_lang $cond_where $ws_where AND " . FILE_TABLE . ".IsFolder=0 AND " . LINK_TABLE . ".DID=" . FILE_TABLE . ".ID AND " . LINK_TABLE . ".CID=" . CONTENT_TABLE . ".ID AND " . FILE_TABLE . ".Published > 0 AND " . LINK_TABLE . ".DocumentTable='" . stripTblPrefix(FILE_TABLE) . "'" . (($dt != "#NODOCTYPE#") ? (" AND " . FILE_TABLE . '.DocType=' . intval($dt)) : '') . ' ' . $sql_tail . $calendar_where . " " . $orderstring;
@@ -328,21 +333,18 @@ class we_listview extends listviewBase{
 			$count = $this->count;
 			$fetch = false;
 			if($this->calendar_struct['calendar'] != ''){
-				listviewBase::next_record();
+				parent::next_record();
 				$count = $this->calendar_struct['count'];
 				$fetch = $this->calendar_struct['forceFetch'];
 			}
 
 			if($this->calendar_struct['calendar'] == '' || $fetch){
 				$id = $this->IDs[$count];
-				$this->DB_WE->query('SELECT ' . CONTENT_TABLE . '.BDID as BDID, ' . CONTENT_TABLE . '.Dat as Dat, ' . LINK_TABLE . '.Name as Name FROM ' . LINK_TABLE . ',' . CONTENT_TABLE . ' WHERE ' . LINK_TABLE . '.DID=' . $id . ' AND ' . LINK_TABLE . '.CID=' . CONTENT_TABLE . '.ID AND ' . LINK_TABLE . '.DocumentTable="' . stripTblPrefix(FILE_TABLE) . '"');
+				$this->DB_WE->query('SELECT ' . CONTENT_TABLE . '.BDID as BDID, ' . CONTENT_TABLE . '.Dat as Dat, ' . LINK_TABLE . '.Name as Name FROM ' . LINK_TABLE . ',' . CONTENT_TABLE . ' WHERE ' . LINK_TABLE . '.DID=' . intval($id) . ' AND ' . LINK_TABLE . '.CID=' . CONTENT_TABLE . '.ID AND ' . LINK_TABLE . '.DocumentTable="' . stripTblPrefix(FILE_TABLE) . '"');
 				$this->Record = array();
 				while($this->DB_WE->next_record()) {
-					if($this->DB_WE->f('BDID')){
-						$this->Record[$this->DB_WE->f('Name')] = $this->DB_WE->f('BDID');
-					} else{
-						$this->Record[$this->DB_WE->f('Name')] = $this->DB_WE->f('Dat');
-					}
+					$tmp = ($this->DB_WE->f('BDID'));
+					$this->Record[$this->DB_WE->f('Name')] = $tmp ? $tmp : $this->DB_WE->f('Dat');
 				}
 				$this->DB_WE->query('SELECT * FROM ' . FILE_TABLE . ' WHERE ID=' . intval($id));
 				if($this->DB_WE->next_record()){
