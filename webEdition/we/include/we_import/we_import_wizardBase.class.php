@@ -48,7 +48,7 @@ abstract class we_import_wizardBase{
 		$args = 'pnt=wizbody' .
 				(($cmd1 = we_base_request::_(we_base_request::STRING, 'we_cmd', false, 1)) ? '&we_cmd[1]=' . $cmd1 : '');
 
-		$body = we_html_element::htmlBody(array('style' => 'background-color:grey;margin: 0px;position:fixed;top:0px;left:0px;right:0px;bottom:0px;border:0px none;', "onload" => "wiz_next('wizbody', '" . $this->path . '?' . $args . "');")
+		$body = we_html_element::htmlBody(array('style' => 'background-color:grey;position:fixed;top:0px;left:0px;right:0px;bottom:0px;border:0px none;', "onload" => "wiz_next('wizbody', '" . $this->path . '?' . $args . "');")
 						, we_html_element::htmlDiv(array('style' => 'position:absolute;top:0px;bottom:0px;left:0px;right:0px;')
 								, we_html_element::htmlIFrame('wizbody', "about:blank", 'position:absolute;top:0px;bottom:40px;left:0px;right:0px;overflow: auto') .
 								we_html_element::htmlIFrame('wizbusy', "about:blank", 'position:absolute;height:40px;bottom:0px;left:0px;right:0px;overflow: hidden;') .
@@ -105,10 +105,10 @@ HTS;
 								we_html_tools::getHtmlInnerHead(g_l('import', '[title]')) .
 								we_html_element::jsScript(JS_DIR . 'windows.js') .
 								we_html_element::jsScript(JS_DIR . 'we_showMessage.js') .
-								we_html_element::jsScript(JS_DIR . 'libs/yui/yahoo-min.js') .
-								we_html_element::jsScript(JS_DIR . 'libs/yui/event-min.js') .
-								we_html_element::jsScript(JS_DIR . 'libs/yui/json-min.js') .
-								we_html_element::jsScript(JS_DIR . 'libs/yui/connection-min.js') .
+								we_html_element::jsScript(LIB_DIR . 'additional/yui/yahoo-min.js') .
+								we_html_element::jsScript(LIB_DIR . 'additional/yui/event-min.js') .
+								we_html_element::jsScript(LIB_DIR . 'additional/yui/json-min.js') .
+								we_html_element::jsScript(LIB_DIR . 'additional/yui/connection-min.js') .
 								we_html_element::jsElement("
 function wiz_next(frm, url) {
 	eval('window.'+frm+'.location.href=\"'+url+'\"');
@@ -144,7 +144,7 @@ function we_cmd() {
 						} else {
 							self.wizbody.document.forms['we_form'].elements['v[docCategories]'].value=','+cats[i]+',';
 						}
-						setTimeout(\"weGetCategories('doc',self.wizbody.document.forms['we_form'].elements['v[docCategories]'].value,'rows')\",100);
+						setTimeout(function(){weGetCategories('doc',self.wizbody.document.forms['we_form'].elements['v[docCategories]'].value,'rows');},100);
 					}
 				}
 			}
@@ -172,7 +172,7 @@ function we_cmd() {
 						} else {
 							self.wizbody.document.forms['we_form'].elements['v[objCategories]'].value=','+cats[i]+',';
 						}
-						setTimeout(\"weGetCategories('obj',self.wizbody.document.forms['we_form'].elements['v[objCategories]'].value,'rows')\",100);
+						setTimeout(function(){weGetCategories('obj',self.wizbody.document.forms['we_form'].elements['v[objCategories]'].value,'rows');},100);
 					}
 				}
 			}
@@ -258,11 +258,11 @@ function we_cmd() {
 			$js = we_html_element::jsElement('
 function finish(rebuild) {
 	var std = top.wizbusy.document.getElementById("standardDiv");
-	if(typeof(std)!="undefined"){
+	if(std!==undefined){
 		std.style.display = "none";
 	}
 	var cls = top.wizbusy.document.getElementById("closeDiv");
-	if(typeof( cls)!="undefined"){
+	if(cls!==undefined){
 		 cls.style.display = "block";
 	}
 	if(rebuild) {
@@ -334,7 +334,7 @@ top.wizcmd.we_import(1,-2' . ((we_base_request::_(we_base_request::STRING, 'type
 
 
 					$out .= we_html_element::htmlForm(array("name" => "we_form"), $h) .
-							we_html_element::jsElement($JScript . 'setTimeout("we_import(1,-1);",15);');
+							we_html_element::jsElement($JScript . 'setTimeout(function(){we_import(1,-1);},15);');
 					break;
 
 				case -1:
@@ -426,7 +426,7 @@ if (top.wizbody && top.wizbody.addLog){
 							we_html_element::htmlHidden(array("name" => "v[uniquePath]", "value" => ($v["type"] != we_import_functions::TYPE_GENERIC_XML) ? $path : $parse->path));
 
 					$out .= we_html_element::htmlForm(array("name" => "we_form"), $h) . we_html_element::jsElement(
-									"setTimeout(\"we_import(1,0);\",15);");
+									"setTimeout(function(){we_import(1,0);},15);");
 					break;
 
 				case $v['numFiles']:
@@ -497,12 +497,12 @@ if (top.wizbody.addLog){
 
 
 									$out .= we_html_element::htmlForm(array("name" => "we_form"), $hiddens .
-													we_html_element::jsElement($JScript . "setTimeout('we_import(1," . $v['cid'] . ");',15);"));
+													we_html_element::jsElement($JScript . "setTimeout(function(){we_import(1," . $v['cid'] . ");},15);"));
 								} else {
 
 									$JScript = "
 top.wizbusy.finish(" . $xmlExIm->options['rebuild'] . ");
-setTimeout('we_import(1," . $v['numFiles'] . ");',15);";
+setTimeout(function(){we_import(1," . $v['numFiles'] . ");},15);";
 								}
 								$out .= we_html_element::htmlForm(array("name" => "we_form"), $hiddens . we_html_element::jsElement($JScript));
 
@@ -550,13 +550,13 @@ setTimeout('we_import(1," . $v['numFiles'] . ");',15);";
 												$_path_info = $ref->Path;
 												break;
 											case 'doctype':
-												$_path_info = f('SELECT DocType FROM ' . escape_sql_query($ref->Table) . ' WHERE ID = ' . intval($ref->ID), 'DocType', new DB_WE());
+												$_path_info = f('SELECT DocType FROM ' . escape_sql_query($ref->Table) . ' WHERE ID=' . intval($ref->ID), '', new DB_WE());
 												break;
 											case 'weNavigationRule':
-												$_path_info = f('SELECT NavigationName FROM ' . escape_sql_query($ref->Table) . ' WHERE ID = ' . intval($ref->ID), 'NavigationName', new DB_WE());
+												$_path_info = f('SELECT NavigationName FROM ' . escape_sql_query($ref->Table) . ' WHERE ID=' . intval($ref->ID), '', new DB_WE());
 												break;
 											case 'weThumbnail':
-												$_path_info = f('SELECT Name FROM ' . escape_sql_query($ref->Table) . ' WHERE ID = ' . intval($ref->ID), 'Name', new DB_WE());
+												$_path_info = f('SELECT Name FROM ' . escape_sql_query($ref->Table) . ' WHERE ID=' . intval($ref->ID), '', new DB_WE());
 												break;
 											default:
 												$_path_info = id_to_path($ref->ID, $ref->Table);
@@ -587,7 +587,7 @@ top.wizbusy.setProgress(Math.floor(((" . $v['cid'] . "+1)/" . (int) (2 * $v["num
 
 
 									$out .= we_html_element::htmlForm(array("name" => "we_form"), $hiddens .
-													we_html_element::jsElement($JScript . "setTimeout('we_import(1," . ($v["cid"] + 1) . ");',15);"));
+													we_html_element::jsElement($JScript . "setTimeout(function(){we_import(1," . ($v["cid"] + 1) . ");},15);"));
 								}
 							}
 							break 2;
@@ -702,7 +702,7 @@ top.wizbusy.setProgress(Math.floor(((" . $v["cid"] . "+1)/" . $v["numFiles"] . "
 
 
 					$out .= we_html_element::htmlForm(array("name" => "we_form"), $hiddens .
-									we_html_element::jsElement($JScript . "setTimeout('we_import(1," . ($v["cid"] + 1) . ");',15);"));
+									we_html_element::jsElement($JScript . "setTimeout(function(){we_import(1," . ($v["cid"] + 1) . ");},15);"));
 					break;
 			} // end switch
 		} else if($mode != 1){
@@ -792,10 +792,10 @@ function we_import(mode, cid) {
 							top.wizbusy.setProgress(100);
 							top.opener.top.we_cmd('load', top.opener.top.treeData.table ,0);" .
 						//. "top.opener.top.header.location.reload();\n"
-						"if(top.opener.top.top.weEditorFrameController.getActiveDocumentReference().quickstart && typeof(top.opener.top.weEditorFrameController.getActiveDocumentReference().quickstart) != 'undefined') top.opener.top.weEditorFrameController.getActiveDocumentReference().location.reload();
+						"if(top.opener.top.top.weEditorFrameController.getActiveDocumentReference().quickstart && top.opener.top.weEditorFrameController.getActiveDocumentReference().quickstart != undefined) top.opener.top.weEditorFrameController.getActiveDocumentReference().location.reload();
 							if(top.wizbusy && top.wizbusy.document.getElementById('progress')) {
 							progress = top.wizbusy.document.getElementById('progress');
-							if(typeof(progress)!='undefined'){
+							if(progress!==undefined){
 									progress.style.display = 'none';
 								}
 							}" .
@@ -803,7 +803,7 @@ function we_import(mode, cid) {
 								"if (top.wizbody && top.wizbody.addLog) {
 								top.wizbody.addLog(\"<br/>" . addslashes(we_html_tools::getPixel(10, 10) . we_html_element::htmlB(g_l('import', '[end_import]') . " - " . date("d.m.Y H:i:s"))) . "<br/><br/>\");
 								}" :
-								we_message_reporting::getShowMessageCall(g_l('import', '[finish_import]'), we_message_reporting::WE_MESSAGE_NOTICE) . 'setTimeout("top.close()",100);'
+								we_message_reporting::getShowMessageCall(g_l('import', '[finish_import]'), we_message_reporting::WE_MESSAGE_NOTICE) . 'setTimeout(top.close,100);'
 						);
 		}
 

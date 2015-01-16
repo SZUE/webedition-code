@@ -29,20 +29,8 @@ class we_tool_tree extends weMainTree{
 		parent::__construct($frameset, $topFrame, $treeFrame, $cmdFrame);
 
 		$this->setStyles(array(
-			'.item {color: black; font-size: ' . (((we_base_browserDetect::isUNIX()) ? 11 : 9)) . 'px; font-family: ' . g_l('css', '[font_family]') . ';}',
-			'.item a { text-decoration:none;}',
-			'.group {color: black; font-weight: bold; font-size: ' . (((we_base_browserDetect::isUNIX()) ? 11 : 9)) . 'px; font-family: ' . g_l('css', '[font_family]') . ';}',
-			'.group a { text-decoration:none;}',
-			'.selected_item {color: black; font-size: ' . (((we_base_browserDetect::isUNIX()) ? 11 : 9)) . 'px; font-family: ' . g_l('css', '[font_family]') . '; background-color: #D4DBFA; cursor: pointer;}',
-			'.selected_item a { text-decoration:none;}',
-			'.selected_notpublished_item {color: #3366CC; font-size: ' . (((we_base_browserDetect::isUNIX()) ? 11 : 9)) . 'px; font-family: ' . g_l('css', '[font_family]') . '; background-color: #D4DBFA; cursor: pointer;}',
-			'.selected_notpublished_item a { text-decoration:none;}',
-			'.selected_changed_item {color: #3366CC; font-size: ' . (((we_base_browserDetect::isUNIX()) ? 11 : 9)) . 'px; font-family: ' . g_l('css', '[font_family]') . '; background-color: #D4DBFA; cursor: pointer;}',
-			'.selected_changed_item a { text-decoration:none;}',
-			'.selected_group {color: black; font-weight: bold; font-size: ' . (((we_base_browserDetect::isUNIX()) ? 11 : 9)) . 'px; font-family: ' . g_l('css', '[font_family]') . '; background-color: #D4DBFA; cursor: pointer;}',
-			'.selected_group a { text-decoration:none;}',
-			'.selected_open_group {color: black; font-weight: bold; font-size: ' . (((we_base_browserDetect::isUNIX()) ? 11 : 9)) . 'px; font-family: ' . g_l('css', '[font_family]') . '; background-color: #D4DBFA; cursor: pointer;}',
-			'.selected_open_group a { text-decoration:none;}',
+			'.selected_item {background-color: #D4DBFA;}',
+			'.selected_group {background-color: #D4DBFA;}',
 		));
 	}
 
@@ -50,26 +38,28 @@ class we_tool_tree extends weMainTree{
 		return '
 function openClose(id){
 	var sort="";
-	if(id=="") return;
+	if(id==""){
+		return;
+	}
 	var eintragsIndex = indexOfEntry(id);
 	var openstatus;
 
-
-	if(treeData[eintragsIndex].open==0) openstatus=1;
-	else openstatus=0;
+	openstatus=(treeData[eintragsIndex].open==0?1:0);
 
 	treeData[eintragsIndex].open=openstatus;
 
 	if(openstatus && treeData[eintragsIndex].loaded!=1){
 		if(sort!=""){
-			' . $this->cmdFrame . '.location="' . $this->frameset . '?pnt=cmd&pid="+id+"&sort="+sort;
+			' . $this->cmdFrame . '.location=treeData.frameset+"?pnt=cmd&pid="+id+"&sort="+sort;
 		}else{
-			' . $this->cmdFrame . '.location="' . $this->frameset . '?pnt=cmd&pid="+id;
+			' . $this->cmdFrame . '.location=treeData.frameset+"?pnt=cmd&pid="+id;
 		}
 	}else{
 		drawTree();
 	}
-	if(openstatus==1) treeData[eintragsIndex].loaded=1;
+	if(openstatus==1){
+		treeData[eintragsIndex].loaded=1;
+	}
 }';
 	}
 
@@ -96,7 +86,7 @@ function updateEntry(id,text,pid,pub,order){
 function startTree(){
 	pid = arguments[0] ? arguments[0] : 0;
 	offset = arguments[1] ? arguments[1] : 0;
-	' . $this->cmdFrame . '.location="' . $this->frameset . '?pnt=cmd&pid="+pid+"&offset="+offset;
+	' . $this->cmdFrame . '.location=treeData.frameset+"?pnt=cmd&pid="+pid+"&offset="+offset;
 	drawTree();
 }';
 	}
@@ -128,25 +118,20 @@ function makeNewEntry(icon,id,pid,txt,open,ct,tab,pub,order){
 
 		ct=(ct=="folder"?"group":"item");
 
-		var attribs=new Array();
-
-		attribs["id"]=id;
-		attribs["icon"]=icon;
-		attribs["text"]=txt;
-		attribs["parentid"]=pid;
-		attribs["open"]=open;
-
-		attribs["order"]=order;
-
-		attribs["tooltip"]=id;
-		attribs["typ"]=ct;
-
-
-		attribs["disabled"]=0;
-		attribs["published"]=pub==0 ? 1 : 0;
-		attribs["depended"]=pub;
-
-		attribs["selected"]=0;
+		var attribs={
+		"id":id,
+		"icon":icon,
+		"text":txt,
+		"parentid":pid,
+		"open":open,
+		"order":order,
+		"tooltip":id,
+		"typ":ct,
+		"disabled":0,
+		"published":(pub==0 ? 1 : 0),
+		"depended":pub,
+		"selected":0,
+		};
 
 		treeData.addSort(new node(attribs));
 
@@ -225,19 +210,10 @@ function clearItems(){
 				we_html_element::htmlHead(//FIXME: missing title
 					we_html_tools::getHtmlInnerHead() .
 					STYLESHEET .
-					we_html_element::cssElement(implode("\n", $this->styles))
+					$this->getStyles()
 				) .
 				we_html_element::htmlBody(array(
-					'bgcolor' => '#F3F7FF',
-					'link' => '#000000',
-					'alink' => '#000000',
-					'vlink' => '#000000',
-					'marginwidth' => 0,
-					'marginheight' => 4,
-					'leftmargin' => 0,
-					'topmargin' => 4
-					), '<div id="treetable"></div>
-					'
+					), '<div id="treetable"></div>'
 				)
 		);
 	}
@@ -257,10 +233,10 @@ function doClick(id,typ){
 			$this->topFrame . '.loaded=1;';
 	}
 
-	function getJSTreeCode($withTag = true){
+	function getJSTreeCode(){
 		// must override
-		return parent::getJSTreeCode($withTag) . "\n" .
-			($withTag ? we_html_element::jsElement('drawTree.selection_table="";') : 'drawTree.selection_table="";');
+		return parent::getJSTreeCode() .
+			we_html_element::jsElement('drawTree.selection_table="";');
 	}
 
 }

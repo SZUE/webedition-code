@@ -483,7 +483,7 @@ if((($cmd0 != 'save_document' && $cmd0 != 'publish' && $cmd0 != 'unpublish') && 
 						$wf_flag = false;
 						$wasNew = (intval($we_doc->ID) == 0) ? true : false;
 						$wasPubl = (isset($we_doc->Published) && $we_doc->Published) ? true : false;
-						if(!permissionhandler::hasPerm('ADMINISTRATOR') && $we_doc->ContentType != 'object' && $we_doc->ContentType != 'objectFile' && !in_workspace($we_doc->ParentID, get_ws($we_doc->Table), $we_doc->Table)){
+						if(!permissionhandler::hasPerm('ADMINISTRATOR') && $we_doc->ContentType != we_base_ContentTypes::OBJECT && $we_doc->ContentType != we_base_ContentTypes::OBJECT_FILE && !in_workspace($we_doc->ParentID, get_ws($we_doc->Table), $we_doc->Table)){
 							$we_responseText = g_l('alert', '[' . FILE_TABLE . '][not_im_ws]');
 							$we_responseTextType = we_message_reporting::WE_MESSAGE_ERROR;
 							include(WE_INCLUDES_PATH . 'we_templates/we_editor_save.inc.php');
@@ -502,7 +502,7 @@ if((($cmd0 != 'save_document' && $cmd0 != 'publish' && $cmd0 != 'unpublish') && 
 								$we_doc->lockDocument();
 							}
 							$wasSaved = true;
-							if($we_doc->ContentType === 'object'){
+							if($we_doc->ContentType === we_base_ContentTypes::OBJECT){
 //FIXME: removed: top.header.document.location.reload(); - what should be reloaded?!
 								$we_JavaScript .= "if(top.treeData.table=='" . OBJECT_FILES_TABLE . "'){top.we_cmd('load', 'tblObjectFiles', 0);}";
 							}
@@ -579,7 +579,7 @@ _EditorFrame.getDocumentReference().frames[3].location.reload();'; // reload the
 								$we_JavaScript .= '_EditorFrame.setEditorDocumentId(' . $we_doc->ID . ');';
 							}
 
-							if(($we_doc->ContentType == we_base_ContentTypes::WEDOCUMENT || $we_doc->ContentType === 'objectFile') && $we_doc->canHaveVariants(true)){
+							if(($we_doc->ContentType == we_base_ContentTypes::WEDOCUMENT || $we_doc->ContentType === we_base_ContentTypes::OBJECT_FILE) && $we_doc->canHaveVariants(true)){
 								we_shop_variants::setVariantDataForModel($we_doc, true);
 							}
 						} else {
@@ -711,7 +711,7 @@ _EditorFrame.getDocumentReference().frames[3].location.reload();'; // reload the
 				we_base_file::deleteLocalFile($GLOBALS['we_file_to_delete_after_include']);
 			}
 			if($we_doc->EditPageNr == we_base_constants::WE_EDITPAGE_PROPERTIES || $we_doc->EditPageNr == we_base_constants::WE_EDITPAGE_SCHEDULER || $we_doc->EditPageNr == we_base_constants::WE_EDITPAGE_THUMBNAILS || ($we_doc instanceof we_object && $we_doc->EditPageNr == we_base_constants::WE_EDITPAGE_CONTENT)){
-				echo we_html_element::jsElement('setTimeout("doScrollTo();",100);');
+				echo we_html_element::jsElement('setTimeout(doScrollTo,100);');
 			}
 	}
 }

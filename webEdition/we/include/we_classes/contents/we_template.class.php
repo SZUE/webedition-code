@@ -502,13 +502,13 @@ we_templateInit();?>';
 		$textname = 'MasterTemplateNameDummy';
 		$idname = 'we_' . $this->Name . '_MasterTemplateID';
 		$myid = $this->MasterTemplateID ? : '';
-		$path = f('SELECT Path FROM ' . $this->DB_WE->escape($table) . ' WHERE ID=' . intval($myid), "Path", $this->DB_WE);
+		$path = f('SELECT Path FROM ' . $this->DB_WE->escape($table) . ' WHERE ID=' . intval($myid), "", $this->DB_WE);
 		$alerttext = str_replace('\'', "\\\\\\'", g_l('weClass', '[same_master_template]'));
-		$wecmdenc1 = we_base_request::encCmd("document.we_form.elements['" . $idname . "'].value");
+		$cmd1 = "document.we_form.elements['" . $idname . "'].value";
 		$wecmdenc2 = we_base_request::encCmd("document.we_form.elements['" . $textname . "'].value");
 		$wecmdenc3 = we_base_request::encCmd("opener._EditorFrame.setEditorIsHot(true);if(currentID==$this->ID){" . we_message_reporting::getShowMessageCall($alerttext, we_message_reporting::WE_MESSAGE_ERROR) . "opener.document.we_form.elements['" . $idname . "'].value='';opener.document.we_form.elements['" . $textname . "'].value='';}");
 
-		$button = we_html_button::create_button('select', "javascript:we_cmd('openDocselector',document.we_form.elements['" . $idname . "'].value,'" . $table . "','" . $wecmdenc1 . "','" . $wecmdenc2 . "','" . $wecmdenc3 . "','','','" . we_base_ContentTypes::TEMPLATE . "',1)");
+		$button = we_html_button::create_button('select', "javascript:we_cmd('openDocselector'," . $cmd1 . ",'" . $table . "','" . we_base_request::encCmd($cmd1) . "','" . $wecmdenc2 . "','" . $wecmdenc3 . "','','','" . we_base_ContentTypes::TEMPLATE . "',1)");
 		$openButton = we_html_button::create_button('edit', 'javascript:goTemplate(document.we_form.elements[\'we_' . $GLOBALS['we_doc']->Name . '_MasterTemplateID\'].value)');
 		$trashButton = we_html_button::create_button(we_html_button::WE_IMAGE_BUTTON_IDENTIFY . 'btn_function_trash', "javascript:document.we_form.elements['" . $idname . "'].value='';document.we_form.elements['" . $textname . "'].value='';YAHOO.autocoml.selectorSetValid('yuiAcInputMasterTemplate');_EditorFrame.setEditorIsHot(true);", true, 27, 22);
 
@@ -782,6 +782,74 @@ we_templateInit();?>';
 
 	function getRealPath($old = false){
 		return preg_replace('/.tmpl$/i', '.php', parent::getRealPath($old));
+	}
+
+	public static function we_getCodeMirror2Tags($css, $setting, $weTags = true){
+		$ret = '';
+		$allTags = array();
+		if($weTags && ($css || $setting['WE'])){
+			$allWeTags = we_wizard_tag::getExistingWeTags($css); //only load deprecated tags if css is requested
+			foreach($allWeTags as $tagName){
+				if(($weTag = weTagData::getTagData($tagName))){
+					if($css){
+						$ret.='.cm-weTag_' . $tagName . ':hover:after {content: "' . strtr(html_entity_decode($weTag->getDescription(), null, $GLOBALS['WE_BACKENDCHARSET']), array('"' => '\'', "\n" => ' ')) . '";}' . "\n";
+					} else {
+						$allTags['we:' . $tagName] = array('we' => $weTag->getAttributesForCM());
+					}
+				}
+			}
+		}
+		if($css){
+			return $ret;
+		}
+
+		$all = include(WE_INCLUDES_PATH . 'we_templates/htmlTags.inc.php');
+		$allTags = array_merge($allTags, ($setting['htmlTag'] ? $all['html'] : array()), ($setting['html5Tag'] ? $all['html5'] : array()));
+		if(!$allTags){
+			return '';
+		}
+		//keep we tags in front of ordinal html tags
+		$ret.='CodeMirror.weHints["<"] = ["' . implode('","', array_keys($allTags)) . '"];' . "\n";
+
+		ksort($allTags);
+		foreach($allTags as $tagName => $cur){
+			$attribs = array();
+			foreach($cur as $type => $attribList){
+				switch($type){
+					case 'we':
+						$ok = true;
+						break;
+					case 'default':
+						$ok = (isset($setting['htmlDefAttr']) && $setting['htmlDefAttr']);
+						break;
+					case 'js':
+						$ok = (isset($setting['htmlJSAttr']) && $setting['htmlJSAttr']);
+						break;
+					case 'norm':
+						$ok = (isset($setting['htmlAttr']) && $setting['htmlAttr']);
+						break;
+					case 'default_html5':
+						$ok = (isset($setting['html5Tag']) && isset($setting['htmlDefAttr']) && $setting['html5Tag'] && $setting['htmlDefAttr']);
+						break;
+					case 'html5':
+						$ok = (isset($setting['html5Tag']) && isset($setting['html5Attr']) && $setting['html5Tag'] && $setting['html5Attr']);
+						break;
+					default:
+						$ok = false;
+				}
+				if($ok){
+					foreach($attribList as $attr){
+						$attribs[] = '\'' . $attr . (strstr($attr, '"') === false ? '=""' : '') . '\'';
+					}
+				}
+			}
+			if($attribs){
+				$attribs = array_unique($attribs);
+				sort($attribs);
+				$ret.='CodeMirror.weHints["<' . $tagName . ' "] = [' . implode(',', $attribs) . '];' . "\n";
+			}
+		}
+		return $ret;
 	}
 
 }

@@ -320,7 +320,7 @@ function doClick(opt) {
 	function getHTMLFrameset(){
 		$head = we_html_tools::getHtmlInnerHead(g_l('backup', '[wizard_' . ($this->mode == self::BACKUP ? 'backup' : 'recover') . '_title]')) . STYLESHEET;
 
-		$body = we_html_element::htmlBody(array('style' => 'background-color:grey;margin: 0px;position:fixed;top:0px;left:0px;right:0px;bottom:0px;border:0px none;')
+		$body = we_html_element::htmlBody(array('style' => 'background-color:grey;position:fixed;top:0px;left:0px;right:0px;bottom:0px;border:0px none;')
 						, we_html_element::htmlDiv(array('style' => 'position:absolute;top:0px;bottom:0px;left:0px;right:0px;')
 								, we_html_element::htmlIFrame('body', $this->frameset . "?pnt=body", 'position:absolute;top:0px;bottom:40px;left:0px;right:0px;overflow: auto', 'border:0px;width:100%;height:100%;overflow: auto;') .
 								we_html_element::htmlIFrame('busy', $this->frameset, 'position:absolute;height:40px;bottom:0px;left:0px;right:0px;overflow: hidden') .
@@ -690,7 +690,7 @@ function startImport(isFileReady) {
 		startBusy();
 		top.body.delete_enabled = top.body.switch_button_state("delete", "delete_enabled", "disabled");
 		document.we_form.action = "' . WE_INCLUDES_DIR . 'we_editors/we_backup_cmd.php";
-		setTimeout("document.we_form.submit()",100);
+		setTimeout(document.we_form.submit,100);
 	}else
 		' . we_message_reporting::getShowMessageCall(g_l('backup', '[nothing_selected]'), we_message_reporting::WE_MESSAGE_WARNING) . '
 	') : ('
@@ -699,7 +699,7 @@ function startImport(isFileReady) {
 		top.body.delete_backup_enabled = top.body.switch_button_state("delete_backup", "delete_backup_enabled", "disabled");
 		top.body.delete_enabled = top.body.switch_button_state("delete", "delete_enabled", "disabled");
 		document.we_form.action = "' . WE_INCLUDES_DIR . 'we_editors/we_backup_cmd.php";
-		setTimeout("document.we_form.submit()",100);
+		setTimeout(document.we_form.submit,100);
 	}
 	else
 		' . we_message_reporting::getShowMessageCall(g_l('backup', '[nothing_selected_fromlist]'), we_message_reporting::WE_MESSAGE_WARNING) . '
@@ -1385,7 +1385,7 @@ function setLocation(loc){
 	location.href=loc;
 }
 top.opener.top.openWindow("' . WEBEDITION_DIR . 'we_cmd.php?we_cmd[0]=rebuild&step=2&btype=rebuild_all&responseText=' . g_l('backup', '[finished_success]') . '","rebuildwin",-1,-1,600,130,0,true);
-setTimeout("top.close();",300);'
+setTimeout(top.close,300);'
 				);
 				break;
 			case "import":
@@ -1656,7 +1656,7 @@ function reloadFrame(){
 	}
 }
 
-setTimeout("reloadFrame()", ' . $_execute . ');');
+setTimeout(reloadFrame, ' . $_execute . ');');
 	}
 
 	static function getDownloadLinkText(){

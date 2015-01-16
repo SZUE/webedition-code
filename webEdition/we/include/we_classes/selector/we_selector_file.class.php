@@ -195,7 +195,7 @@ function exit_close(){
 		return we_html_element::jsElement('
 function applyOnEnter(evt) {
 	_elemName = "target";
-	if ( typeof(evt["srcElement"]) != "undefined" ) { // IE
+	if (evt.srcElement !== undefined ) { // IE
 		_elemName = "srcElement";
 	}
 
@@ -214,7 +214,7 @@ function closeOnEscape() {
 	}
 
 	function printFramesetHTML(){
-		$this->setDirAndID();//set correct directory
+		$this->setDirAndID(); //set correct directory
 		echo we_html_tools::getHtmlTop($this->title, '', 'frameset') .
 		implodeJS(
 			we_html_element::jsScript(JS_DIR . 'keyListener.js') .
@@ -331,7 +331,7 @@ var startPath="' . $startPath . '";
 
 
 var parentID=' . intval(($this->dir ?
-						f('SELECT ParentID FROM ' . $this->db->escape($this->table) . ' WHERE ID=' . intval($this->dir), 'ParentID', $this->db) :
+						f('SELECT ParentID FROM ' . $this->db->escape($this->table) . ' WHERE ID=' . intval($this->dir), '', $this->db) :
 						0)) . ';
 var table="' . $this->table . '";
 var order="' . $this->order . '";
@@ -416,7 +416,7 @@ function setDir(id){
 	}
 
 	protected function getFsQueryString($what){
-		return $_SERVER["SCRIPT_NAME"] . '?what='.$what.'&table=' . $this->table . '&id=' . $this->id . '&order=' . $this->order . '&filter=' . $this->filter;
+		return $_SERVER['SCRIPT_NAME'] . '?what='.$what.'&table=' . $this->table . '&id=' . $this->id . '&order=' . $this->order . '&filter=' . $this->filter;
 	}
 
 	protected function printFramesetJSFunctionQueryString(){
@@ -456,8 +456,7 @@ a:link,a:visited,a:hover,a:active
 <table border="0" cellpadding="0" cellspacing="0">');
 		?>
 				for (i = 0; i < entries.length; i++) {
-					d.writeln('<tr>');
-					d.writeln('<td class="selector" align="center">');
+					d.writeln('<tr><td class="selector" align="center">');
 					var link = '<a title="' + entries[i].text + '" href="javascript://"';
 					if (entries[i].isFolder) {
 						link += ' onDblClick="this.blur();top.wasdblclick=1;clearTimeout(tout);top.doClick(' + entries[i].ID + ',1);return true;"';
@@ -526,8 +525,17 @@ function clearEntries(){
 	}
 
 	protected function printBodyHTML(){
-		echo we_html_element::htmlDocType() . '<html><head>' . we_html_tools::getJSErrorHandler() . '</head>
-				<body style="background-color:white" onload="top.writeBody(self.document);"></body></html>';
+		echo 	we_html_tools::getHtmlTop('', '', '4Trans', true) . STYLESHEET_SCRIPT.
+		we_html_element::cssElement('
+body{
+	background-color: white;
+	margin: 0px;
+}
+a, a:visited, a:active{
+	color: #000000;
+}').
+			'</head>
+				<body onload="top.writeBody(self.document);"></body></html>';
 	}
 
 	function printHeaderHTML(){

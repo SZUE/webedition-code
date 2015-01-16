@@ -36,17 +36,18 @@ class we_export_tree extends weMainTree{
 
 		return '
 function openClose(id){
-
-	if(id=="") return;
+	if(id==""){
+		return;
+	}
 
 	var eintragsIndex = indexOfEntry(id);
 	var status;
 
-	if(treeData[eintragsIndex].open==0) openstatus=1;
-	else openstatus=0;
+	openstatus=(treeData[eintragsIndex].open==0? 1:0);
+
 	treeData[eintragsIndex].open=openstatus;
 	if(openstatus && treeData[eintragsIndex].loaded!=1){
-		' . $this->cmdFrame . '.location="' . $this->frameset . '?pnt=load&tab="+' . $this->topFrame . '.table+"&cmd=load&pid="+id;
+		' . $this->cmdFrame . '.location=treeData.frameset+"?pnt=load&tab="+' . $this->topFrame . '.table+"&cmd=load&pid="+id;
 		' . $this->topFrame . '.openFolders[' . $this->topFrame . '.table]+=","+id;
 	}else{
 		var arr = ' . $this->topFrame . '.openFolders[' . $this->topFrame . '.table].split(",");
@@ -58,7 +59,9 @@ function openClose(id){
 		}
 		drawTree();
 	}
-	if(openstatus==1) treeData[eintragsIndex].loaded=1;
+	if(openstatus==1){
+		treeData[eintragsIndex].loaded=1;
+	}
 }';
 	}
 
@@ -101,12 +104,12 @@ if(in_array(' . $this->topFrame . '.SelectedItems[attribs["table"]],"' . $item["
 
 	function getJSStartTree(){
 		return 'function startTree(){
-				' . $this->cmdFrame . '.location="' . $this->frameset . '?pnt=load&cmd=load&tab="+' . $this->topFrame . '.table+"&pid=0&openFolders="+' . $this->topFrame . '.openFolders[' . $this->topFrame . '.table];
+				' . $this->cmdFrame . '.location=treeData.frameset+"?pnt=load&cmd=load&tab="+' . $this->topFrame . '.table+"&pid=0&openFolders="+' . $this->topFrame . '.openFolders[' . $this->topFrame . '.table];
 			}';
 	}
 
 	function getJSTreeCode(){
-		return weMainTree::getJSTreeCode() .
+		return parent::getJSTreeCode() .
 			we_html_element::jsElement($this->getJSStartTree());
 	}
 
@@ -114,15 +117,10 @@ if(in_array(' . $this->topFrame . '.SelectedItems[attribs["table"]],"' . $item["
 
 		return '
 function drawTree(){
-	var out=\'<table border="0" cellpadding="0" cellspacing="0" width="100%"><tr><td>' . we_html_tools::getPixel(5, 7) . '</td></tr><tr><td class="\'+treeData.getlayout()+\'">\n<nobr>\n\';
-	out+=draw(treeData.startloc,"");
-	out+="</nobr>\n</td></tr></table>\n";
+	var out=\'<div class="treetable \'+treeData.getlayout()+\'"><nobr>\'+
+		draw(treeData.startloc,"")+
+		"</nobr></div>";
 	' . $this->treeFrame . '.document.getElementById("treetable").innerHTML=out;
-	/*nurl="treeMain.php";
-	win=window.open(nurl);
-	win.document.open();
-	win.document.write(top.treeHTML.innerHTML);
-	win.document.close();*/
 	}' . $this->getJSDraw();
 	}
 
@@ -135,7 +133,7 @@ function checkNode(imgName) {
 			' . $this->treeFrame . '.populate(treeData[i].id,treeData.table);
 			if(treeData[i].checked==1) {
 				if(document.images) {
-					eval("if("+treeData.treeFrame+".document.images[imgName]) "+treeData.treeFrame+".document.images[imgName].src=treeData.check0_img.src;");
+					eval("if("+treeData.treeFrame+".document.images[imgName]) "+treeData.treeFrame+".document.images[imgName].src=treeData.tree_image_dir+\"check0.gif\";");
 				}
 				treeData[i].checked=0;
 				if(' . $this->topFrame . '.SelectedItems[' . $this->topFrame . '.table].length>1){
@@ -152,10 +150,9 @@ function checkNode(imgName) {
 
 				treeData[i].applylayout();
 				break;
-			}
-			else {
+			} else {
 				if(document.images) {
-					eval("if("+treeData.treeFrame+".document.images[imgName]) "+treeData.treeFrame+".document.images[imgName].src=treeData.check1_img.src;");
+					eval("if("+treeData.treeFrame+".document.images[imgName]) "+treeData.treeFrame+".document.images[imgName].src=treeData.tree_image_dir+\"check1.gif\";");
 				}
 				treeData[i].checked=1;
 				' . $this->topFrame . '.SelectedItems[' . $this->topFrame . '.table].push(treeData[i].id);
@@ -166,7 +163,7 @@ function checkNode(imgName) {
 
 	}
 	if(top.content) {
-		if(typeof(top.content.hot) != "undefined") {
+		if(top.content.hot !== undefined) {
 			top.content.hot=1;
 		}
 	}
@@ -185,7 +182,7 @@ function populate(id,table){
 function setHead(tab){
 	' . $this->topFrame . '.table=tab;
 	' . $this->topFrame . '.document.we_form.table.value=tab;
-	setTimeout("' . $this->topFrame . '.startTree()",100);
+	setTimeout(' . $this->topFrame . '.startTree,100);
 }
 
 var SelectedItems= new Array();
@@ -208,19 +205,8 @@ openFolders["' . TEMPLATES_TABLE . '"]="";
 
 ' . $this->getJSStartTree());
 
-		$style_code = "";
-		if(isset($this->SelectionTree->styles)){
-			foreach($this->SelectionTree->styles as $st){
-				$style_code.=$st . "\n";
-			}
-		}
-
 		if($useSelector){
-			$header = new we_html_table(array("cellpadding" => 0, "cellspacing" => 0, "border" => 0), 3, 1);
-
-			$header->setCol(0, 0, array("bgcolor" => "white"), we_html_tools::getPixel(5, 5));
 			$captions = array();
-
 			if(permissionhandler::hasPerm("CAN_SEE_DOCUMENTS")){
 				$captions[FILE_TABLE] = g_l('export', '[documents]');
 			}
@@ -234,6 +220,8 @@ openFolders["' . TEMPLATES_TABLE . '"]="";
 				$captions[OBJECT_TABLE] = g_l('export', '[classes]');
 			}
 
+			$header = new we_html_table(array("cellpadding" => 0, "cellspacing" => 0, "border" => 0), 3, 1);
+			$header->setCol(0, 0, array("bgcolor" => "white"), we_html_tools::getPixel(5, 5));
 			$header->setColContent(1, 0, we_html_tools::htmlSelect('headerSwitch', $captions, 1, we_base_request::_(we_base_request::TABLE, 'headerSwitch', 0), false, array('onchange' => "setHead(this.value);"), 'value', $width));
 			$header->setColContent(2, 0, we_html_tools::getPixel(5, 5));
 			$header = $header->getHtml();
@@ -257,7 +245,6 @@ openFolders["' . TEMPLATES_TABLE . '"]="";
 
 		$DB_WE = new DB_WE();
 		$where = ' WHERE  ParentID=' . intval($ParentID) . ' AND((1' . we_users_util::makeOwnersSql() . ')' . $GLOBALS['wsQuery'] . ')';
-		//if($GLOBALS['table']==FILE_TABLE) $where .= " AND (ClassName='we_webEditionDocument' OR ClassName='we_folder')";
 		$elem = 'ID,ParentID,Path,Text,Icon,IsFolder,ModDate' . (($table == FILE_TABLE || (defined('OBJECT_FILES_TABLE') && $table == OBJECT_FILES_TABLE)) ? ",Published" : "") . ((defined('OBJECT_FILES_TABLE') && $table == OBJECT_FILES_TABLE) ? ",IsClassFolder" : "");
 
 		switch($table){
@@ -279,17 +266,16 @@ openFolders["' . TEMPLATES_TABLE . '"]="";
 			$ContentType = $DB_WE->f("ContentType");
 			$Icon = $DB_WE->f("Icon");
 			$IsClassFolder = $DB_WE->f("IsClassFolder");
+			$published = (($DB_WE->f("Published") != 0) && ($DB_WE->f("Published") < $DB_WE->f("ModDate"))) ? -1 : $DB_WE->f("Published");
 
 			$checked = 0;
 			switch($table){
 				case FILE_TABLE:
-					$published = (($DB_WE->f("Published") != 0) && ($DB_WE->f("Published") < $DB_WE->f("ModDate"))) ? -1 : $DB_WE->f("Published");
 					if(isset($_SESSION['weS']['exportVars_session']["selDocs"]) && in_array($ID, makeArrayFromCSV($_SESSION['weS']['exportVars_session']["selDocs"]))){
 						$checked = 1;
 					}
 					break;
 				case (defined('OBJECT_FILES_TABLE') ? OBJECT_FILES_TABLE : 'OBJECT_FILES_TABLE'):
-					$published = (($DB_WE->f("Published") != 0) && ($DB_WE->f("Published") < $DB_WE->f("ModDate"))) ? -1 : $DB_WE->f("Published");
 					if(isset($_SESSION['weS']['exportVars_session']["selObjs"]) && in_array($ID, makeArrayFromCSV($_SESSION['weS']['exportVars_session']["selObjs"]))){
 						$checked = 1;
 					}

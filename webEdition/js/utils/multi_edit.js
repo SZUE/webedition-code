@@ -46,18 +46,18 @@ function multi_edit(parentId, form, itemNum, but, width, editable) {
 		this.parent.appendChild(item);
 
 		item = null;
-	}
+	};
 
 	this.updateHidden = function (item, value) {
 		this.form.elements[this.name + "_variant" + this.currentVariant + "_" + this.name + "_" + item].value = value;
-	}
+	};
 
 	this.addVariant = function () {
 		for (var i = 0; i < this.itemCount; i++) {
 			this.createItemHidden(this.name + "_variant" + this.variantCount + "_" + this.name + "_item" + i);
 		}
 		this.variantCount++;
-	}
+	};
 
 	this.deleteVariant = function (variant) {
 		if (variant < (this.variantCount - 1)) {
@@ -74,14 +74,13 @@ function multi_edit(parentId, form, itemNum, but, width, editable) {
 			//this.form.removeChild(item);
 			this.parent.removeChild(item);
 		}
-		if (variant < (this.variantCount - 1))
-			this.currentVariant = variant;
-		else
-			this.currentVariant = this.variantCount - 1;
+		this.currentVariant = (variant < (this.variantCount - 1) ?
+						variant :
+						this.variantCount - 1);
 
 		this.showVariant(this.currentVariant);
 
-	}
+	};
 
 	this.addItem = function () {
 		if (arguments[0]) {
@@ -107,7 +106,7 @@ function multi_edit(parentId, form, itemNum, but, width, editable) {
 			}
 
 		this.itemCount++;
-	}
+	};
 
 	this.delItem = function (child) {
 		this.itemCount--;
@@ -140,15 +139,15 @@ function multi_edit(parentId, form, itemNum, but, width, editable) {
 			}
 		}
 		this.showVariant(this.currentVariant);
-	}
+	};
 
 	this.setItem = function (variant, item, value) {
 		this.form.elements[this.name + "_variant" + variant + "_" + this.name + "_item" + item].value = value;
-	}
+	};
 
 	this.setRelatedItems = function (item) {
 		this.relatedItems[this.itemCount] = item;
-	}
+	};
 
 	this.showVariant = function (variant) {
 		for (var i = 0; i < this.itemCount; i++) {
@@ -158,14 +157,14 @@ function multi_edit(parentId, form, itemNum, but, width, editable) {
 				}
 				if (this.editable){
 					this.form.elements[this.name + "_item" + i].value = this.form.elements[this.name + "_variant" + variant + "_" + this.name + "_item" + i].value;
-				}else {
+				} else {
 					var item = document.getElementById(this.name + "_item_label_" + i);
 					item.innerHTML = this.form.elements[this.name + "_variant" + variant + "_" + this.name + "_item" + i].value;
 				}
 			}
 		}
 		this.currentVariant = variant;
-	}
+	};
 
 	this.button = but;
 	for (i = 0; i < itemNum; i++) {

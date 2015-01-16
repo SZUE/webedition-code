@@ -79,10 +79,6 @@ class we_users_selector extends we_selector_multiple{
 		}
 	}
 
-	protected function getFsQueryString($what){
-		return $_SERVER['SCRIPT_NAME'] . "?what=$what&table=" . $this->table . "&id=" . $this->id . "&order=" . $this->order . "&filter=" . $this->filter;
-	}
-
 	function query(){
 		switch($this->filter){
 			case 'group':

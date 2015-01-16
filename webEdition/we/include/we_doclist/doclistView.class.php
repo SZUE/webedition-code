@@ -43,45 +43,14 @@ class doclistView{
               }';
 		}
 
-		//workaround for z-index ans selects in ie6
-		if(((we_base_browserDetect::isIE()) && we_base_browserDetect::getIEVersion() < 7)){
-			$showHideSelects = 'var AnzahlSelects = document.getElementsByTagName("select");
-                for (var k = 0; k <= AnzahlSelects.length; k++ ) {
-                  var selectAnzahl = AnzahlSelects[k];
-                  var sATop = absTop(selectAnzahl);
-                  var sAHeight = selectAnzahl.offsetHeight;
-                  var sABottom = eval(sATop+sAHeight);
-                  var sALeft = absLeft(selectAnzahl);
-                  var sAWidth = selectAnzahl.offsetWidth;
-                  var sARight = eval(sALeft+sAWidth);
-
-                  if(elem.offsetTop-20<sATop && eval(elem.offsetTop+elemHeight+50)>sABottom && elem.offsetLeft<sARight && eval(elem.offsetLeft+elemWidth)>sALeft) {
-                    selectAnzahl.style.visibility = "hidden";
-                  }
-                  else {
-                    selectAnzahl.style.visibility = "visible";
-                  }
-                }';
-
-			$showSelects = 'var AnzahlSelects = document.getElementsByTagName("select");
-              for (var k = 0; k <= AnzahlSelects.length; k++ ) {
-                var selectAnzahl = AnzahlSelects[k];
-                if(selectAnzahl.style.visibility == "hidden") {
-                  selectAnzahl.style.visibility = "visible";
-                }
-              }';
-		} else {
-			$showHideSelects = '';
-			$showSelects = '';
-		}
-		$we_transaction = we_base_request::_(we_base_request::TRANSACTION, 'we_transaction', 0);
+	 		$we_transaction = we_base_request::_(we_base_request::TRANSACTION, 'we_transaction', 0);
 
 		return we_html_element::jsElement('
 
       var ajaxURL = "' . WEBEDITION_DIR . 'rpc/rpc.php";
       var ajaxCallbackResultList = {
         success: function(o) {
-          if(typeof(o.responseText) != "undefined" && o.responseText != "") {
+          if(o.responseText !== undefined && o.responseText != "") {
             document.getElementById("scrollContent_doclist").innerHTML = o.responseText;
             makeAjaxRequestParametersTop();
             makeAjaxRequestParametersBottom();
@@ -93,7 +62,7 @@ class doclistView{
       }
       var ajaxCallbackParametersTop = {
         success: function(o) {
-          if(typeof(o.responseText) != "undefined" && o.responseText != "") {
+          if(o.responseText !== undefined && o.responseText != "") {
             document.getElementById("parametersTop").innerHTML = o.responseText;
           }
         },
@@ -103,7 +72,7 @@ class doclistView{
       }
       var ajaxCallbackParametersBottom = {
         success: function(o) {
-          if(typeof(o.responseText) != "undefined" && o.responseText != "") {
+          if(o.responseText !== undefined && o.responseText != "") {
             document.getElementById("parametersBottom").innerHTML = o.responseText;
           }
         },
@@ -114,7 +83,7 @@ class doclistView{
 
       var ajaxCallbackgetMouseOverDivs = {
         success: function(o) {
-          if(typeof(o.responseText) != "undefined" && o.responseText != "") {
+          if(o.responseText !== undefined && o.responseText != "") {
             document.getElementById("mouseOverDivs_doclist").innerHTML = o.responseText;
           }
         },
@@ -262,8 +231,6 @@ class doclistView{
         elem = document.getElementById(picID);
         elem.style.visibility = "hidden";
         elem.style.left = "-9999px";
-
-        ' . $showSelects . '
       }
 
 
@@ -294,8 +261,6 @@ class doclistView{
           else if((h-y)<250) {
             elem.style.top = (y - elemHeight - 10) + "px";
           }
-
-          ' . $showHideSelects . '
 
         }
       }
@@ -1098,7 +1063,7 @@ class doclistView{
 				switch($_result[$f]["ContentType"]){
 					case we_base_ContentTypes::HTML:
 					case we_base_ContentTypes::WEDOCUMENT:
-					case "objectFile":
+					case we_base_ContentTypes::OBJECT_FILE:
 						$published = ((($_result[$f]["Published"] != 0) && ($_result[$f]["Published"] < $_result[$f]["ModDate"])) ? -1 : $_result[$f]["Published"]);
 						if($published == 0){
 							$fontColor = 'notpublished';
@@ -1119,7 +1084,7 @@ class doclistView{
 			$Icon = we_base_ContentTypes::inst()->getIcon($_result[$f]["ContentType"], we_base_ContentTypes::FILE_ICON, $ext);
 
 			if($view == 0){
-				$publishCheckbox = (!$showPubCheckbox) ? (($_result[$f]["ContentType"] == we_base_ContentTypes::WEDOCUMENT || $_result[$f]["ContentType"] == we_base_ContentTypes::HTML || $_result[$f]["ContentType"] === "objectFile") && permissionhandler::hasPerm('PUBLISH')) ? we_html_forms::checkbox($_result[$f]["docID"] . "_" . $_result[$f]["docTable"], 0, "publish_docs_doclist", "", false, "middlefont", "") : we_html_tools::getPixel(20, 10) : '';
+				$publishCheckbox = (!$showPubCheckbox) ? (($_result[$f]["ContentType"] == we_base_ContentTypes::WEDOCUMENT || $_result[$f]["ContentType"] == we_base_ContentTypes::HTML || $_result[$f]["ContentType"] === we_base_ContentTypes::OBJECT_FILE) && permissionhandler::hasPerm('PUBLISH')) ? we_html_forms::checkbox($_result[$f]["docID"] . "_" . $_result[$f]["docTable"], 0, "publish_docs_doclist", "", false, "middlefont", "") : we_html_tools::getPixel(20, 10) : '';
 
 				$content[$f] = array(
 					array("dat" => $publishCheckbox),

@@ -24,59 +24,41 @@
  */
 class we_voting_tree extends weMainTree{
 
-	function __construct($frameset = "", $topFrame = "", $treeFrame = "", $cmdFrame = ""){
-
-		parent::__construct($frameset, $topFrame, $treeFrame, $cmdFrame);
-
-		$this->setStyles(array(
-			'.item {color: black; font-size: ' . (((we_base_browserDetect::isUNIX()) ? "11px" : "9px")) . '; font-family: ' . g_l('css', '[font_family]') . ';}',
-			'.item a { text-decoration:none;}',
-			'.group {color: black; font-weight: bold; font-size: ' . (((we_base_browserDetect::isUNIX()) ? "11px" : "9px")) . '; font-family: ' . g_l('css', '[font_family]') . ';}',
-			'.group a { text-decoration:none;}',
-			'.notpublished {color: green; font-size: ' . (((we_base_browserDetect::isUNIX()) ? "11px" : "9px")) . '; font-family: ' . g_l('css', '[font_family]') . '; cursor: pointer;}',
-			'.notpublished a { text-decoration:none;}',
-		));
-	}
-
 	function getJSOpenClose(){
 		return '
 function openClose(id){
 	var sort="";
-	if(id=="") return;
+	if(id==""){
+		return;
+	}
 	var eintragsIndex = indexOfEntry(id);
-	var openstatus;
-
-
-	if(treeData[eintragsIndex].open==0) openstatus=1;
-	else openstatus=0;
+	var openstatus=(treeData[eintragsIndex].open==0?1:0);
 
 	treeData[eintragsIndex].open=openstatus;
 
 	if(openstatus && treeData[eintragsIndex].loaded!=1){
-		if(sort!=""){
-			' . $this->cmdFrame . '.location="' . $this->frameset . '?pnt=cmd&pid="+id+"&sort="+sort;
-		}else{
-			' . $this->cmdFrame . '.location="' . $this->frameset . '?pnt=cmd&pid="+id;
-		}
+			' . $this->cmdFrame . '.location=treeData.frameset+"?pnt=cmd&pid="+id+(sort!=""?"&sort="+sort:"");
 	}else{
 		drawTree();
 	}
-	if(openstatus==1) treeData[eintragsIndex].loaded=1;
+	if(openstatus==1){
+		treeData[eintragsIndex].loaded=1;
+	}
 }';
 	}
 
 	function getJSUpdateItem(){
 		return '
 function updateEntry(id,text,pid,pub){
-			var ai = 1;
-			while (ai <= treeData.len) {
-					if (treeData[ai].id==id) {
-							treeData[ai].text=text;
-							treeData[ai].parentid=pid;
-							treeData[ai].published=pub;
-					}
-					ai++;
-			}
+	var ai = 1;
+	while (ai <= treeData.len) {
+		if (treeData[ai].id==id) {
+			treeData[ai].text=text;
+			treeData[ai].parentid=pid;
+			treeData[ai].published=pub;
+		}
+		ai++;
+	}
 	drawTree();
 }';
 	}
@@ -93,12 +75,12 @@ function doClick(id,typ){
 			top.content.usetHot();
 			cmd = "voting_edit";
 			var node=' . $this->topFrame . '.get(id);
-			' . $this->topFrame . '.editor.edbody.location="' . $this->frameset . '?pnt=edbody&cmd="+cmd+"&cmdid="+node.id+"&tabnr="+' . $this->topFrame . '.activ_tab;
+			' . $this->topFrame . '.editor.edbody.location=treeData.frameset+"?pnt=edbody&cmd="+cmd+"&cmdid="+node.id+"&tabnr="+' . $this->topFrame . '.activ_tab;
 		}
 	} else {
 		cmd = "voting_edit";
 		var node=' . $this->topFrame . '.get(id);
-		' . $this->topFrame . '.editor.edbody.location="' . $this->frameset . '?pnt=edbody&cmd="+cmd+"&cmdid="+node.id+"&tabnr="+' . $this->topFrame . '.activ_tab;
+		' . $this->topFrame . '.editor.edbody.location=treeData.frameset+"?pnt=edbody&cmd="+cmd+"&cmdid="+node.id+"&tabnr="+' . $this->topFrame . '.activ_tab;
 	}
 }
 ' . $this->topFrame . '.loaded=1;';
@@ -107,7 +89,7 @@ function doClick(id,typ){
 	function getJSStartTree(){
 
 		return 'function startTree(){
-				' . $this->cmdFrame . '.location="' . $this->frameset . '?pnt=cmd&pid=0";
+				' . $this->cmdFrame . '.location=treeData.frameset+"?pnt=cmd&pid=0";
 				drawTree();
 			}';
 	}
@@ -118,38 +100,28 @@ function doClick(id,typ){
 
 	function getJSMakeNewEntry(){
 		return '
-			function makeNewEntry(icon,id,pid,txt,open,ct,tab,pub){
-					if(treeData[indexOfEntry(pid)]){
-						if(treeData[indexOfEntry(pid)].loaded){
+function makeNewEntry(icon,id,pid,txt,open,ct,tab,pub){
+	if(treeData[indexOfEntry(pid)]&&treeData[indexOfEntry(pid)].loaded){
+		ct=(ct=="folder"? "group":"item");
 
-	 						if(ct=="folder") ct="group";
-	 						else ct="item";
+		var attribs={
+		"id":id,
+		"icon":icon,
+		"text":txt,
+		"parentid":pid,
+		"open":open,
+		"tooltip":id,
+		"typ":ct,
+		"disabled":0,
+		"published":(ct=="item"?pub:1),
+		"selected":0
+		};
 
-							var attribs=new Array();
+		treeData.addSort(new node(attribs));
 
-							attribs["id"]=id;
-							attribs["icon"]=icon;
-							attribs["text"]=txt;
-							attribs["parentid"]=pid;
-							attribs["open"]=open;
-
-	 						attribs["tooltip"]=id;
-	 						attribs["typ"]=ct;
-
-
-							attribs["disabled"]=0;
-							if(ct=="item") attribs["published"]=pub;
-							else attribs["published"]=1;
-
-							attribs["selected"]=0;
-
-							treeData.addSort(new node(attribs));
-
-							drawTree();
-						}
-					}
-			}
-			';
+		drawTree();
+	}
+}';
 	}
 
 	function getJSInfo(){
@@ -158,13 +130,12 @@ function doClick(id,typ){
 
 	function getJSShowSegment(){
 		return '
- 				function showSegment(){
-					parentnode=' . $this->topFrame . '.get(this.parentid);
-					parentnode.clear();
-					' . $this->cmdFrame . '.location="' . $this->frameset . '?pnt=cmd&pid="+this.parentid+"&offset="+this.offset;
-					drawTree();
-				}
-			';
+function showSegment(){
+	parentnode=' . $this->topFrame . '.get(this.parentid);
+	parentnode.clear();
+	' . $this->cmdFrame . '.location=treeData.frameset+"?pnt=cmd&pid="+this.parentid+"&offset="+this.offset;
+	drawTree();
+}';
 	}
 
 }

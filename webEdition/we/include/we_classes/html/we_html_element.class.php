@@ -1,4 +1,5 @@
 <?php
+
 /**
  * webEdition CMS
  *
@@ -94,11 +95,11 @@ abstract class we_html_element{
 		return we_html_baseElement::getHtmlCode(new we_html_baseElement('style', true, $attribs, $content));
 	}
 
-	public static function jsScript($name){
-		$attribs = array(
+	public static function jsScript($name, array $attribs = array()){
+		$attribs = array_merge($attribs, array(
 			'src' => self::getUnCache($name),
 			'type' => 'text/javascript',
-		);
+		));
 		return we_html_baseElement::getHtmlCode(new we_html_baseElement('script', true, $attribs));
 	}
 
@@ -118,9 +119,11 @@ abstract class we_html_element{
 		return we_html_baseElement::getHtmlCode(new we_html_baseElement('script', true, $attribs, $content));
 	}
 
-	public static function cssLink($url){
-		return we_html_baseElement::getHtmlCode(new we_html_baseElement('link', false, array('href' => self::getUnCache($url), 'rel' => 'styleSheet', 'type' => 'text/css')
-		));
+	public static function cssLink($url, array $attribs = array()){
+		$attribs['href'] = self::getUnCache($url);
+		$attribs['rel'] = 'styleSheet';
+		$attribs['type'] = 'text/css';
+		return we_html_baseElement::getHtmlCode(new we_html_baseElement('link', false, $attribs));
 	}
 
 	/**
@@ -221,9 +224,6 @@ abstract class we_html_element{
 	 */
 	public static function htmlBody(array $attribs = array(), $content = ''){
 		$body = new we_html_baseElement('body', true, $attribs, $content);
-		if(!$body->hasStyle('margin')){
-			$body->setStyle('margin', '0px 0px 0px 0px');
-		}
 		return $body->getHTML();
 	}
 
@@ -413,8 +413,8 @@ abstract class we_html_element{
 	public static function htmlIFrame($name, $src, $style = '', $iframestyle = ''){
 		$iframestyle = empty($iframestyle) ? 'border:0px;width:100%;height:100%;overflow: ' . (we_base_browserDetect::isFF() ? 'auto' : 'hidden') . ';' : $iframestyle;
 		return self::htmlDiv(array('style' => $style, 'name' => $name . 'Div', 'id' => $name . 'Div')
-				, we_html_baseElement::getHtmlCode(
-					new we_html_baseElement('iframe', true, array('name' => $name, 'id' => $name, 'frameBorder' => 0, 'src' => $src, 'style' => $iframestyle))
+						, we_html_baseElement::getHtmlCode(
+								new we_html_baseElement('iframe', true, array('name' => $name, 'id' => $name, 'frameBorder' => 0, 'src' => $src, 'style' => $iframestyle))
 		));
 	}
 

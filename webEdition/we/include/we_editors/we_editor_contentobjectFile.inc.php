@@ -62,20 +62,7 @@ $we_doc = $GLOBALS['we_doc'];
 $jsGUI = new weOrderContainer("_EditorFrame.getContentEditor()", "objectEntry");
 echo $jsGUI->getJS(JS_DIR) .
  we_html_multiIconBox::getJs();
-?>
 
-<script type="text/javascript"><!--
-	function toggleObject(id) {
-		var elem = document.getElementById(id);
-		if (elem.style.display == "none") {
-			elem.style.display = "block";
-		} else {
-			elem.style.display = "none";
-		}
-	}
-//-->
-</script>
-<?php
 require_once(WE_INCLUDES_PATH . 'we_editors/we_editor_script.inc.php');
 echo we_html_element::jsScript(JS_DIR . 'windows.js') .
  STYLESHEET;
@@ -120,5 +107,5 @@ echo we_html_element::jsScript(JS_DIR . 'windows.js') .
 		?>
 		<input type="hidden" name="we_complete_request" value="1"/>
 	</form>
-</body><?php echo we_html_element::jsElement('setTimeout("doScrollTo();",100);'); ?>
+</body><?php echo we_html_element::jsElement('setTimeout(doScrollTo,100);'); ?>
 </html>

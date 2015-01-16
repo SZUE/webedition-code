@@ -94,8 +94,7 @@ function getJSCommand($cmd0){
 				$openTable = $_SESSION['weS']['seemForOpenDelSelector']['Table'];
 				unset($_SESSION['weS']['seemForOpenDelSelector']['Table']);
 			}
-			$_cmd = 'top.we_cmd("openDelSelector","","' . $openTable . '","","","","","","",1);';
-			return "setTimeout('" . $_cmd . "',50)";
+			return "setTimeout(function(){top.we_cmd('openDelSelector','','" . $openTable . "','','','','','','',1);},50);";
 		/* case "export_documents":
 		  $_tbl = FILE_TABLE;
 		  case "export_templates":
@@ -111,7 +110,7 @@ function getJSCommand($cmd0){
 			}
 			if(preg_match('/^new_ClObjectFile(.+)$/', $cmd0, $regs)){
 				$clID = $regs[1];
-				return 'top.we_cmd("new","' . OBJECT_FILES_TABLE . '","","objectFile","' . $clID . '");';
+				return 'top.we_cmd("new","' . OBJECT_FILES_TABLE . '","","' . we_base_ContentTypes::OBJECT_FILE . '","' . $clID . '");';
 			}
 			$arr = array();
 			foreach($_REQUEST['we_cmd'] as $cur){

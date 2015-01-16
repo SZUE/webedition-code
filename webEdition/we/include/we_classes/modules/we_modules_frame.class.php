@@ -24,7 +24,7 @@
  */
 //TODO in modulesFrames: set module-settings as class properties instead of looping them through as method parameters!
 
-class we_modules_frame{
+abstract class we_modules_frame{
 
 	var $module;
 	var $db;
@@ -63,25 +63,29 @@ class we_modules_frame{
 		return ($this->Tree->initialized ? 'function start(){startTree();}' : 'function start(){}');
 	}
 
-	public function getHTMLDocumentHeader(){
-		we_html_tools::headerCtCharset('text/html', $GLOBALS['WE_BACKENDCHARSET']);
-		return we_html_tools::getHtmlTop($this->module) . STYLESHEET;
+	public function getHTMLDocumentHeader($charset = ''){
+		$charset = ($charset? : $GLOBALS['WE_BACKENDCHARSET']);
+		we_html_tools::headerCtCharset('text/html', $charset);
+		return we_html_tools::getHtmlTop($this->module, $charset) . STYLESHEET;
 	}
 
 	function getHTMLDocument($body, $extraHead = ''){
-		/*
-		  return we_html_element::htmlDocType() . we_html_element::htmlHtml(
-		  we_html_element::htmlHead(we_html_tools::getHtmlInnerHead($this->module) .
-		  STYLESHEET . $extraHead) . $body
-		  );
-		 *
-		 */
-		//this is not nice, but it works for the moment...
-		return STYLESHEET . $extraHead .
-				we_html_element::jsScript(JS_DIR . 'libs/yui/yahoo-min.js') .
-				we_html_element::jsScript(JS_DIR . 'libs/yui/event-min.js') .
-				we_html_element::jsScript(JS_DIR . 'libs/yui/connection-min.js') .
+		return $this->getHTMLDocumentHeader() .
+				$extraHead .
+				we_html_element::jsScript(LIB_DIR . 'additional/yui/yahoo-min.js') .
+				we_html_element::jsScript(LIB_DIR . 'additional/yui/event-min.js') .
+				we_html_element::jsScript(LIB_DIR . 'additional/yui/connection-min.js') .
 				'</head>' . $body . '</html>';
+	}
+
+	function getTree_g_l(){
+		return 'var g_l = {
+"tree_select_statustext":"' . g_l('tree', '[select_statustext]') . '",
+"tree_edit_statustext":"' . g_l('tree', '[edit_statustext]') . '",
+"tree_open_statustext":"' . g_l('tree', '[open_statustext]') . '",
+"tree_close_statustext":"' . g_l('tree', '[close_statustext]') . '"
+	}
+';
 	}
 
 	function getJSCmdCode(){
@@ -161,7 +165,7 @@ class we_modules_frame{
 		$content = we_html_element::htmlDiv(array('style' => 'position: absolute; top: 0px; bottom: 0px; left: 0px; right: 0px;'), we_html_element::htmlDiv(array('id' => 'lframeDiv', 'style' => 'position: absolute; top: 0px; bottom: 0px; left: 0px; right: 0px;width: ' . $this->treeWidth . 'px;'), we_html_element::htmlDiv(array('style' => 'position: absolute; top: 0px; bottom: 0px; left: 0px; right: 0px; width: ' . weTree::HiddenWidth . 'px; background-image: url(' . IMAGE_DIR . 'v-tabs/background.gif); background-repeat: repeat-y; border-top: 1px solid black;'), $_incDecTree) .
 								$this->getHTMLLeft()
 						) .
-						we_html_element::htmlDiv(array('id' => 'right', 'style' => 'background: #F0EFF0; position: absolute; top: 0px; bottom: 0px; left: ' . $this->treeWidth . 'px; right: 0px; width: auto; border-left: 1px solid black; overflow: auto;'), we_html_element::htmlIFrame('editor', $this->frameset . '?pnt=editor' . $extraUrlParams, 'position: absolute; top: 0px; bottom: 0px; left: 0px; right: 0px; overflow: hidden;')
+						we_html_element::htmlDiv(array('id' => 'right', 'style' => 'background-color: #F0EFF0; position: absolute; top: 0px; bottom: 0px; left: ' . $this->treeWidth . 'px; right: 0px; width: auto; border-left: 1px solid black; overflow: auto;'), we_html_element::htmlIFrame('editor', $this->frameset . '?pnt=editor' . $extraUrlParams, 'position: absolute; top: 0px; bottom: 0px; left: 0px; right: 0px; overflow: hidden;')
 						)
 		);
 
@@ -201,8 +205,28 @@ class we_modules_frame{
 						'topmargin' => 4), $Tree->getHTMLContructX('if(top.treeResized){top.treeResized();}')
 			);
 		}
+//FIXME make this a static document & use this at messaging_usel_browse_frameset.php as well
+		return $this->getHTMLDocument(we_html_element::htmlBody(), '
+<style type="text/css">
+body{
+	background-color:#F3F7FF;
+}
+a,a:visited,a:active{
+color:#000000;
+}
+</style>' .
+						we_html_element::cssLink(CSS_DIR . 'tree.css') .
+						we_html_tools::getJSErrorHandler() . we_html_element::jsElement('
+	clickCount=0;
+	wasdblclick=0;
+	tout=null;' . $this->getDoClick() . '
+function loadFinished(){
+	top.content.loaded=1;
+}'));
+	}
 
-		return $this->getHTMLDocument(we_html_element::htmlBody(array('bgcolor' => '#F3F7FF')));
+	protected function getDoClick(){//overwrite
+		return '';
 	}
 
 	protected function getHTMLTreeheader(){
@@ -235,7 +259,7 @@ class we_modules_frame{
 
 	protected function getHTMLEditorFooter($btn_cmd, $extraHead = ''){
 		if(we_base_request::_(we_base_request::BOOL, 'home')){
-			return $this->getHTMLDocument(we_html_element::htmlBody(array("bgcolor" => "#EFf0EF"), ""));
+			return $this->getHTMLDocument(we_html_element::htmlBody(array("style" => "background-color:#EFf0EF"), ""));
 		}
 
 		$extraHead .= we_html_element::jsElement('
@@ -296,7 +320,8 @@ function we_save() {
 			$_no = $_frame . '.hot=0;' . $_frame . '.we_cmd("' . $dc . '","' . we_base_request::_(we_base_request::INT, 'delayParam') . '");self.close();';
 			$_cancel = 'self.close();';
 
-			return STYLESHEET .
+			return we_html_tools::getHtmlTop() .
+					STYLESHEET .
 					'</head>
 			<body class="weEditorBody" onBlur="self.focus()" onload="self.focus()">' .
 					we_html_tools::htmlYesNoCancelDialog(g_l('tools', '[exit_doc_question]'), IMAGE_DIR . "alert.gif", "ja", "nein", "abbrechen", $_yes, $_no, $_cancel) .
@@ -326,100 +351,24 @@ function we_save() {
 
 	static function getJSToggleTreeCode($module, $treeDefaultWidth){
 		//FIXME: throw some of these functions out again and use generic version of main-window functions
-
 		return we_html_element::jsElement('
-var oldTreeWidth = ' . $treeDefaultWidth . ';
-
-function toggleTree(){
-	var tDiv = self.document.getElementById("left");
-	var w = getTreeWidth();
-
-	if(tDiv.style.display == "none"){
-		oldTreeWidth = (oldTreeWidth < ' . weTree::MinWidthModules . ' ? ' . $treeDefaultWidth . ' : oldTreeWidth);
-		setTreeWidth(oldTreeWidth);
-		tDiv.style.display = "block";
-		setTreeArrow("left");
-		storeTreeWidth(oldTreeWidth);
-	} else{
-		tDiv.style.display = "none";
-		oldTreeWidth = w;
-		setTreeWidth(' . weTree::HiddenWidth . ');
-		setTreeArrow("right");
-	}
-}
-
-function setTreeArrow(direction) {
-	try{
-		self.document.getElementById("arrowImg").src = "' . BUTTONS_DIR . 'icons/direction_" + direction + ".gif";
-		if(direction == "right"){
-			self.document.getElementById("incBaum").style.backgroundColor = "gray";
-			self.document.getElementById("decBaum").style.backgroundColor = "gray";
-		}else{
-			self.document.getElementById("incBaum").style.backgroundColor = "";
-			self.document.getElementById("decBaum").style.backgroundColor = "";
-		}
-	} catch(e) {
-		// Nothing
-	}
-}
-
-function getTreeWidth() {
-	var w = self.document.getElementById("lframeDiv").style.width;
-	return w.substr(0, w.length-2);
-}
-
-function setTreeWidth(w) {
-	self.document.getElementById("lframeDiv").style.width = w + "px";
-	self.document.getElementById("right").style.left = w + "px";
-	if(w > ' . weTree::HiddenWidth . '){
-		storeTreeWidth(w);
-	}
-}
-
-function storeTreeWidth(w) {
-	var ablauf = new Date();
-	var newTime = ablauf.getTime() + 30758400000;
-	ablauf.setTime(newTime);
-	weSetCookie("' . $module . '", w, ablauf, "/");
-}
-
-function incTree(){
-	var w = parseInt(getTreeWidth());
-	if((w > ' . weTree::MinWidthModules . ') && (w < ' . weTree::MaxWidthModules . ')){
-		w += ' . weTree::StepWidth . ';
-		setTreeWidth(w);
-	}
-	if(w >= ' . weTree::MaxWidthModules . '){
-		w = ' . weTree::MaxWidthModules . ';
-		self.document.getElementById("incBaum").style.backgroundColor = "grey";
-	}
-}
-
-function decTree(){
-	var w = parseInt(getTreeWidth());
-	w -= ' . weTree::StepWidth . ';
-	if(w > ' . weTree::MinWidthModules . '){
-		setTreeWidth(w);
-		self.document.getElementById("incBaum").style.backgroundColor = "";
-	}
-	if(w <= ' . weTree::MinWidthModules . ' && ((w + ' . weTree::StepWidth . ') >= ' . weTree::MinWidthModules . ')){
-		toggleTree();
-	}
-}
-
-function weSetCookie(module, value, expires, path, domain){
-	var moduleVals = ' . self::$treeWidthsJS . ';
-	var doc = self.document;
-	moduleVals[module] = value;
-	var val = "";
-	for(var param in moduleVals){
-		val += val ? "," + param + ":" + moduleVals[param] : param + " : " + moduleVals[param];
-	}
-	doc.cookie = "treewidth_modules" + "=" + val +
-		((expires == null) ? "" : "; expires=" + expires.toGMTString()) +
-		((path == null)    ? "" : "; path=" + path) +
-		((domain == null)  ? "" : "; domain=" + domain);
-}');
+var dirs = {
+	"BUTTONS_DIR": "' . BUTTONS_DIR . '"
+};
+var size = {
+	"tree": {
+		"hidden":' . weTree::HiddenWidth . ',
+		"default":' . $treeDefaultWidth . ',
+		"min":' . weTree::MinWidthModules . ',
+		"max":' . weTree::MaxWidthModules . ',
+		"step":' . weTree::StepWidth . ',
+		"moveWidth":' . weTree::MoveWidth . ',
+		"deleteWidth":' . weTree::DeleteWidth . ',
+		"jsWidth":' . self::$treeWidthsJS . '
+	},
+};
+var currentModule="' . $module . '";
+') . we_html_element::jsScript(JS_DIR . 'modules_tree.js');
 	}
 
 	/* process vars & commands

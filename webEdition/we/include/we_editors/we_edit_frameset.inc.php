@@ -131,7 +131,7 @@ if(we_base_request::_(we_base_request::STRING, 'we_cmd', '', 0) === 'new_documen
 if(($doct = we_base_request::_(we_base_request::INT, 'we_cmd', false, 8)) !== false && ($we_Table == FILE_TABLE) && ($we_ContentType === we_base_ContentTypes::WEDOCUMENT)){
 	$we_doc->changeDoctype($doct);
 	$_SESSION['weS']['EditPageNr'] = getTabs($we_doc->ClassName, 1);
-} else if($doct !== false && (defined('OBJECT_FILES_TABLE') && $we_Table == OBJECT_FILES_TABLE) && ($we_ContentType === 'objectFile')){
+} else if($doct !== false && (defined('OBJECT_FILES_TABLE') && $we_Table == OBJECT_FILES_TABLE) && ($we_ContentType === we_base_ContentTypes::OBJECT_FILE)){
 	$we_doc->TableID = $doct;
 	$we_doc->setRootDirID(true);
 	$we_doc->restoreDefaults();
@@ -156,7 +156,7 @@ if($we_doc->ID){
 	}
 	$_access = $we_doc->userHasAccess();
 	if(($_access !== we_root::USER_HASACCESS && $_access !== we_root::FILE_LOCKED)){ //   user has no access to object/document - bugfix #2481
-		if($we_ContentType != 'object'){
+		if($we_ContentType != we_base_ContentTypes::OBJECT){
 			$_SESSION['weS']['EditPageNr'] = we_base_constants::WE_EDITPAGE_PREVIEW;
 		} else {
 			include(WE_USERS_MODULE_PATH . 'we_users_permmessage.inc.php');
@@ -219,7 +219,7 @@ if(!isset($we_doc->IsClassFolder) || !$we_doc->IsClassFolder){
 		}
 	}
 
-	if($we_doc->ContentType === 'objectFile' && (!$we_doc->canMakeNew())){ // at this time only in objectFiles
+	if($we_doc->ContentType === we_base_ContentTypes::OBJECT_FILE && (!$we_doc->canMakeNew())){ // at this time only in objectFiles
 		$we_message = g_l('alert', '[no_new][objectFile]');
 		include(WE_USERS_MODULE_PATH . 'we_users_permmessage.inc.php');
 		exit;
@@ -242,7 +242,7 @@ if(!$we_doc->getElement('data')){
 }
 echo we_html_tools::getHtmlTop('', '', 'frameset');
 ?>
-<script  type="text/javascript">
+<script type="text/javascript">
 	<!--
 	var unlock = false;
 	var scrollToVal = 0;

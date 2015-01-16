@@ -50,30 +50,12 @@ class weMainTree extends weTree{
 		));
 
 		$this->setStyles(array(
-			'.item {color: black; font-size: ' . (((we_base_browserDetect::isUNIX()) ? "11px" : "9px")) . '; font-family: ' . g_l('css', '[font_family]') . '; cursor: pointer;}',
-			'.item a { text-decoration:none;}',
-			'.group {color: black; font-weight: bold; font-size: ' . (((we_base_browserDetect::isUNIX()) ? "11px" : "9px")) . '; font-family: ' . g_l('css', '[font_family]') . '; cursor: pointer;}',
-			'.group a { text-decoration:none;}',
-			'.checked_item {color: black; font-size: ' . (((we_base_browserDetect::isUNIX()) ? 11 : 9)) . 'px; font-family: ' . g_l('css', '[font_family]') . '; background-color: #D4DBFA; cursor: pointer;}',
-			'.checked_item a { text-decoration:none;}',
-			'.checked_group {color: black; font-weight: bold; font-size: ' . (((we_base_browserDetect::isUNIX()) ? 11 : 9)) . 'px; font-family: ' . g_l('css', '[font_family]') . '; background-color: #D4DBFA; cursor: pointer;}',
-			'.checked_group a { text-decoration:none;}',
-			'.checked_notpublished {color: red; font-size: ' . (((we_base_browserDetect::isUNIX()) ? 11 : 9)) . 'px; font-family: ' . g_l('css', '[font_family]') . '; background-color: #D4DBFA; cursor: pointer;}',
-			'.checked_notpublished a { text-decoration:none;}',
-			'.checked_changed {color: #3366CC; font-size: ' . (((we_base_browserDetect::isUNIX()) ? 11 : 9)) . 'px; font-family: ' . g_l('css', '[font_family]') . '; background-color: #D4DBFA; cursor: pointer;}',
-			'.checked_changed a { text-decoration:none;}',
-			'#tree .disabled {color: grey; font-size: ' . (((we_base_browserDetect::isUNIX()) ? 11 : 9)) . 'px; font-family: ' . g_l('css', '[font_family]') . '; cursor: pointer;}',
-			'#tree .disabled a { text-decoration:none;}',
-			'.selected_item {color: black; font-size: ' . (((we_base_browserDetect::isUNIX()) ? 11 : 9)) . 'px; font-family: ' . g_l('css', '[font_family]') . '; background-color: #D4DBFA; cursor: pointer;}',
-			'.selected_item a { text-decoration:none;}',
-			'.selected_notpublished_item {color: red; font-size: ' . (((we_base_browserDetect::isUNIX()) ? 11 : 9)) . 'px; font-family: ' . g_l('css', '[font_family]') . '; background-color: #D4DBFA; cursor: pointer;}',
-			'.selected_notpublished_item a { text-decoration:none;}',
-			'.selected_changed_item {color: #3366CC; font-size: ' . (((we_base_browserDetect::isUNIX()) ? 11 : 9)) . 'px; font-family: ' . g_l('css', '[font_family]') . '; background-color: #D4DBFA; cursor: pointer;}',
-			'.selected_changed_item a { text-decoration:none;}',
-			'.selected_group {color: black; font-weight: bold; font-size: ' . (((we_base_browserDetect::isUNIX()) ? "11px" : "9px")) . '; font-family: ' . g_l('css', '[font_family]') . '; background-color: #D4DBFA; cursor: pointer;}',
-			'.selected_group a { text-decoration:none;}',
-			'.selected_open_group {color: black; font-weight: bold; font-size: ' . (((we_base_browserDetect::isUNIX()) ? "11px" : "9px")) . '; font-family: ' . g_l('css', '[font_family]') . '; background-color: #D4DBFA; cursor: pointer;}',
-			'.selected_open_group a { text-decoration:none;}',
+			'.item {cursor: pointer;}',
+			'.group {cursor: pointer;}',
+			'.selected_item {background-color: #D4DBFA;}',
+			'.selected_group {background-color: #D4DBFA;}',
+			'.selected_notpublished_item {color: red;}',
+			'.selected_open_group {color: black;}',
 			)
 		);
 	}
@@ -119,7 +101,7 @@ function doClick(id){
 
 	function getJSUpdateTreeScript($doc, $select = true){
 
-		$published = ((($doc->Published != 0) && ($doc->Published < $doc->ModDate) && ($doc->ContentType == we_base_ContentTypes::HTML || $doc->ContentType == we_base_ContentTypes::WEDOCUMENT || $doc->ContentType === "objectFile")) ? -1 : $doc->Published);
+		$published = ((($doc->Published != 0) && ($doc->Published < $doc->ModDate) && ($doc->ContentType == we_base_ContentTypes::HTML || $doc->ContentType == we_base_ContentTypes::WEDOCUMENT || $doc->ContentType === we_base_ContentTypes::OBJECT_FILE)) ? -1 : $doc->Published);
 
 //	This is needed in SeeMode
 		$s = '
@@ -147,18 +129,17 @@ if(weWindow.treeData){
 				'weWindow.treeData.unselectnode();') . '
 	if(weWindow.treeData.table == "' . $doc->Table . '"){
 		if(weWindow.treeData[top.indexOfEntry(' . $doc->ParentID . ')]){
-				var attribs=new Array();
-				attribs["id"]=\'' . $doc->ID . '\';
-				attribs["parentid"]=\'' . $doc->ParentID . '\';
-				attribs["text"]=\'' . $doc->Text . '\';
-				attribs["published"]=\'' . $published . '\';
-				attribs["table"]=\'' . $doc->Table . '\';
+				var attribs={
+				"id":\'' . $doc->ID . '\',
+				"parentid":\'' . $doc->ParentID . '\',
+				"text":\'' . $doc->Text . '\',
+				"published":\'' . $published . '\',
+				"table":\'' . $doc->Table . '\'
+				};
 
-				if(' . $this->topFrame . '.indexOfEntry(' . $doc->ParentID . ')!=-1){
-					var visible=' . $this->topFrame . '.treeData[' . $this->topFrame . '.indexOfEntry(' . $doc->ParentID . ')].open;
-				}else{
-					var visible=0
-				}
+				var visible=(' . $this->topFrame . '.indexOfEntry(' . $doc->ParentID . ')!=-1?
+					' . $this->topFrame . '.treeData[' . $this->topFrame . '.indexOfEntry(' . $doc->ParentID . ')].open:
+						0);
 
 				if(' . $this->topFrame . '.indexOfEntry(' . $doc->ID . ')!=-1){
 						isIn=true;
@@ -235,9 +216,15 @@ function updateEntry(id,text,pid,tab){
 		var ai = 1;
 		while (ai <= treeData.len) {
 			if (treeData[ai].id==id){
-				if(text) treeData[ai].text=text;
-				if(pid) treeData[ai].parentid=pid;
-				if(tab) treeData[ai].table=tab;
+				if(text){
+				treeData[ai].text=text;
+				}
+				if(pid){
+				treeData[ai].parentid=pid;
+				}
+				if(tab){
+				treeData[ai].table=tab;
+				}
 			}
 			ai++;
 		}
@@ -253,23 +240,22 @@ function makeNewEntry(icon,id,pid,txt,open,ct,tab){
 		if(treeData[indexOfEntry(pid)]){
 			if(treeData[indexOfEntry(pid)].loaded){
 
-				var attribs=new Array();
-
-				attribs["id"]=id;
-				attribs["icon"]=icon;
-				attribs["text"]=txt;
-				attribs["parentid"]=pid;
-				attribs["open"]=open;
-				attribs["typ"]=(ct=="folder" ? "group" : "item");
-				attribs["table"]=tab;
-				attribs["tooltip"]=id;
-				attribs["contenttype"]=ct;
-
-
-				attribs["disabled"]=0;
-				if(attribs["typ"]=="item") attribs["published"]=0;
-
-				attribs["selected"]=0;
+				var attribs={
+					"id":id,
+					"icon":icon,
+					"text":txt,
+					"parentid":pid,
+					"open":open,
+					"typ":(ct=="folder" ? "group" : "item"),
+					"table":tab,
+					"tooltip":id,
+					"contenttype":ct,
+					"disabled":0,
+					"selected":0
+				};
+				if(attribs["typ"]=="item"){
+					attribs["published"]=0;
+				}
 
 				treeData.addSort(new node(attribs));
 
@@ -281,7 +267,7 @@ function makeNewEntry(icon,id,pid,txt,open,ct,tab){
 	}
 
 	function getJSIncludeFunctions(){
-		return weTree::getJSIncludeFunctions() . '
+		return parent::getJSIncludeFunctions() . '
 we_scrollY["' . FILE_TABLE . '"] = 0;
 we_scrollY["' . TEMPLATES_TABLE . '"] = 0;' .
 			(defined('OBJECT_TABLE') ? '
@@ -294,7 +280,6 @@ treeData.table="' . FILE_TABLE . '";' .
 
 	function getJSLoadTree($treeItems){
 		$js = 'var attribs=new Array();';
-
 
 		if(is_array($treeItems)){
 			foreach($treeItems as $item){

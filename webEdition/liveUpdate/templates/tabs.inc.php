@@ -36,7 +36,6 @@ foreach($this->Data['allTabs'] as $tabname){
 
 
 // get output
-$tabs->onResize();
 $_tabHead = $tabs->getHeader();
 
 $bodyContent = '<div id="main" >' . we_html_tools::getPixel(100, 3) . '<div style="margin:0px;" id="headrow">' . we_html_tools::getPixel(100, 10) . '</div>' . we_html_tools::getPixel(100, 3) .
@@ -44,7 +43,7 @@ $bodyContent = '<div id="main" >' . we_html_tools::getPixel(100, 3) . '<div styl
 	'</div>';
 
 $_body = we_html_element::htmlBody(array(
-		'style' => 'background: #C8D8EC url(' . IMAGE_DIR . 'backgrounds/header.gif);margin: 0px 0px 0px 0px;',
+		'style' => 'background: #C8D8EC url(' . IMAGE_DIR . 'backgrounds/header.gif);margin: 0px;',
 		'onload' => 'setFrameSize();',
 		'onresize' => 'setFrameSize()'), $bodyContent);
 

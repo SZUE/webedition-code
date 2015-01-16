@@ -58,7 +58,7 @@ echo '<td></td>';
 }
 
 function printFramesetJSFunctioWriteBody(){
-$html = we_html_tools::getHtmlTop('', '', '', true) . STYLESHEET_SCRIPT;
+$html = we_html_tools::getHtmlTop('', '', '', true) . STYLESHEET;
 ?>
 <script type="text/javascript">
 <!--
@@ -168,7 +168,7 @@ function printFramesetJSFunctionQueryString(){
 
 }
 
-function printFramesetJSFunctionEntry(){
+protected function printFramesetJSFunctionEntry(){
 <?php echo '?>'; ?>
 <script type="text/javascript">
 <!--

@@ -336,7 +336,7 @@ function handle_eventNext(){
 		fs = f.elements['v[fserver]'].value,
 		ext = '',
 		fl = f.elements['uploaded_xml_file'].value;
-		" . ($this->fileUploader ? "fl = typeof we_FileUpload !== 'undefined' && !we_FileUpload.getIsLegacyMode() ? 'placeholder.xml' : fl" : "") . ";
+		" . ($this->fileUploader ? "fl = we_FileUpload !== undefined && !we_FileUpload.getIsLegacyMode() ? 'placeholder.xml' : fl" : "") . ";
 
 	if (f.elements['v[rdofloc]'][0].checked==true && fs!=='/') {
 		if (fs.match(/\.\./)=='..') { " . (we_message_reporting::getShowMessageCall(g_l('import', '[invalid_path]'), we_message_reporting::WE_MESSAGE_ERROR)) . "; return; }
@@ -353,7 +353,7 @@ function handle_eventNext(){
 	}
 	f.step.value = 2;
 	// timing Problem with Safari
-	setTimeout('we_submit_form(self.document.forms[\"we_form\"], \"wizbody\", \"" . $this->path . "\")',50);
+	setTimeout(function(){we_submit_form(self.document.forms.we_form, \"wizbody\", \"" . $this->path . "\");},50);
 }
 " : "
 function handle_event(evt) {
@@ -381,7 +381,7 @@ function handle_event(evt) {
 			}
 			f.step.value = 2;
 // timing Problem with Safari
-			setTimeout('we_submit_form(self.document.forms[\"we_form\"], \"wizbody\", \"" . $this->path . "\")',50);
+			setTimeout(function(){we_submit_form(self.document.forms.we_form, \"wizbody\", \"" . $this->path . "\");},50);
 			break;
 		case 'cancel':
 			top.close();
@@ -976,7 +976,7 @@ function handle_eventNext(){
 	var fs = f.elements['v[fserver]'].value;
 	var fl = f.elements['uploaded_xml_file'].value,
 		ext = '';
-	" . ($this->fileUploader ? "fl = typeof we_FileUpload !== 'undefined' && !we_FileUpload.getIsLegacyMode() ? 'placeholder.xml' : fl" : "") . "
+	" . ($this->fileUploader ? "fl = we_FileUpload !== undefined && !we_FileUpload.getIsLegacyMode() ? 'placeholder.xml' : fl" : "") . "
 
 	if ((f.elements['v[rdofloc]'][0].checked==true) && fs!='/') {
 		if (fs.match(/\.\./)=='..') {
@@ -1328,9 +1328,9 @@ HTS;
 		$wepos = weGetCookieVariable('but_xml');
 		$znr = -1;
 
-		$content = we_html_element::jsScript(JS_DIR . 'libs/yui/yahoo-min.js') .
-				we_html_element::jsScript(JS_DIR . 'libs/yui/event-min.js') .
-				we_html_element::jsScript(JS_DIR . 'libs/yui/connection-min.js') .
+		$content = we_html_element::jsScript(LIB_DIR . 'additional/yui/yahoo-min.js') .
+				we_html_element::jsScript(LIB_DIR . 'additional/yui/event-min.js') .
+				we_html_element::jsScript(LIB_DIR . 'additional/yui/connection-min.js') .
 				$hdns .
 				we_html_multiIconBox::getJS() .
 				we_html_multiIconBox::getHTML('xml', '100%', $parts, 30, '', $znr, g_l('weClass', '[moreProps]'), g_l('weClass', '[lessProps]'), ($wepos === 'down'), g_l('import', '[gxml_import]'));
@@ -1818,7 +1818,7 @@ function handle_eventNext(){
 		fs = f.elements['v[fserver]'].value,
 		fl = f.elements['uploaded_csv_file'].value,
 		ext = '';
-		" . ($this->fileUploader ? "fl = typeof we_FileUpload !== 'undefined' && !we_FileUpload.getIsLegacyMode() ? 'placeholder.xml' : fl" : "") . "
+		" . ($this->fileUploader ? "fl = we_FileUpload !== undefined && !we_FileUpload.getIsLegacyMode() ? 'placeholder.xml' : fl" : "") . "
 
 	if ((f.elements['v[rdofloc]'][0].checked==true) && fs!='/') {
 		if (fs.match(/\.\./)=='..') { " . we_message_reporting::getShowMessageCall(g_l('import', '[invalid_path]'), we_message_reporting::WE_MESSAGE_ERROR) . " return; }
@@ -2424,9 +2424,9 @@ HTS;
 		}
 
 
-		$content = we_html_element::jsScript(JS_DIR . "libs/yui/yahoo-min.js") .
-				we_html_element::jsScript(JS_DIR . "libs/yui/event-min.js") .
-				we_html_element::jsScript(JS_DIR . "libs/yui/connection-min.js") .
+		$content = we_html_element::jsScript(LIB_DIR . 'additional/yui/yahoo-min.js') .
+				we_html_element::jsScript(LIB_DIR . 'additional/yui/event-min.js') .
+				we_html_element::jsScript(LIB_DIR . 'additional/yui/connection-min.js') .
 				$hdns .
 				we_html_multiIconBox::getHTML('csv', "100%", $parts, 30, "", -1, "", "", false, g_l('import', '[csv_import]'));
 

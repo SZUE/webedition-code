@@ -99,24 +99,20 @@ switch($bSort){
 		$q_sort = 'CreationDate, Title';
 }
 
-if(!$bDisplay){
-	$_sql = 'SELECT * FROM ' . NOTEPAD_TABLE . " WHERE
+$_sql = 'SELECT * FROM ' . NOTEPAD_TABLE . " WHERE
 		WidgetName = '" . $GLOBALS['DB_WE']->escape($title) . "' AND
-		UserID = " . intval($_SESSION['user']['ID']) . "
-		ORDER BY " . $q_sort;
-} else {
-	$_sql = 'SELECT * FROM ' . NOTEPAD_TABLE . " WHERE
-		WidgetName = '" . $GLOBALS['DB_WE']->escape($title) . "' AND
-		UserID = " . intval($_SESSION['user']['ID']) . " AND (
+		UserID = " . intval($_SESSION['user']['ID']) .
+	($bDisplay ?
+		" AND (
 			Valid = 'always' OR (
 				Valid = 'date' AND ValidFrom <= DATE_FORMAT(NOW(), \"%Y-%m-%d\")
 			) OR (
 				Valid = 'period' AND ValidFrom <= DATE_FORMAT(NOW(), \"%Y-%m-%d\") AND ValidUntil >= DATE_FORMAT(NOW(), \"%Y-%m-%d\")
 			)
-		)
+		)" : ''
+	) .
+	' ORDER BY ' . $q_sort;
 
-		ORDER BY " . $q_sort;
-}
 // validity settings
 $sctValid = we_html_tools::htmlSelect("sct_valid", array(
 		g_l('cockpit', '[always]'), g_l('cockpit', '[from_date]'), g_l('cockpit', '[period]')
@@ -138,9 +134,11 @@ $oTblPeriod->setCol(0, 1, array(
 	), $oTblValidity->getHTML());
 
 // Edit note prio settings
-$rdoPrio[0] = we_html_forms::radiobutton(0, 0, "rdo_prio", g_l('cockpit', '[high]'), true, "middlefont", "", false, "", 0, "");
-$rdoPrio[1] = we_html_forms::radiobutton(1, 0, "rdo_prio", g_l('cockpit', '[medium]'), true, "middlefont", "", false, "", 0, "");
-$rdoPrio[2] = we_html_forms::radiobutton(2, 1, "rdo_prio", g_l('cockpit', '[low]'), true, "middlefont", "", false, "", 0, "");
+$rdoPrio = array(
+	we_html_forms::radiobutton(0, 0, "rdo_prio", g_l('cockpit', '[high]'), true, "middlefont", "", false, "", 0, ""),
+	we_html_forms::radiobutton(1, 0, "rdo_prio", g_l('cockpit', '[medium]'), true, "middlefont", "", false, "", 0, ""),
+	we_html_forms::radiobutton(2, 1, "rdo_prio", g_l('cockpit', '[low]'), true, "middlefont", "", false, "", 0, "")
+);
 $oTblPrio = new we_html_table(array("cellpadding" => 0, "cellspacing" => 0, "border" => 0), 1, 8);
 $oTblPrio->setCol(0, 0, null, $rdoPrio[0]);
 $oTblPrio->setCol(0, 1, null, we_html_element::htmlImg(
@@ -238,38 +236,24 @@ $oPad->setCol(0, 0, array(
 	), we_html_element::htmlImg(array(
 		"src" => IMAGE_DIR . "pd/pad_corner_lt.gif", "width" => 6, "height" => 4
 )));
-$oPad->setCol(0, 1, array(
-	"class" => "cl_notes"
-	), "");
-$oPad->setCol(0, 2, array(
-	"width" => 6
-	), we_html_element::htmlImg(array(
+$oPad->setCol(0, 1, array("class" => "cl_notes"), "");
+$oPad->setCol(0, 2, array("width" => 6), we_html_element::htmlImg(array(
 		"src" => IMAGE_DIR . "pd/pad_corner_rt.gif", "width" => 6, "height" => 4
 )));
-$oPad->setCol(1, 0, array(
-	"colspan" => 3, "class" => "cl_notes"
-	), we_html_element::htmlDiv(array(
+$oPad->setCol(1, 0, array("colspan" => 3, "class" => "cl_notes"), we_html_element::htmlDiv(array(
 		"id" => "notices"
 		), getNoteList($_sql, $bDate, $bDisplay)));
-$oPad->setCol(2, 0, array(
-	'width' => 6
-	), we_html_element::htmlImg(array(
+$oPad->setCol(2, 0, array('width' => 6), we_html_element::htmlImg(array(
 		'src' => IMAGE_DIR . 'pd/pad_corner_lb.gif', "width" => 6, "height" => 6
 )));
-$oPad->setCol(2, 1, array(
-	"class" => "cl_notes"
-	), "");
-$oPad->setCol(2, 2, array(
-	"width" => 6
-	), we_html_element::htmlImg(array(
+$oPad->setCol(2, 1, array("class" => "cl_notes"), "");
+$oPad->setCol(2, 2, array("width" => 6), we_html_element::htmlImg(array(
 		"src" => IMAGE_DIR . "pd/pad_corner_rb.gif", "width" => 6, "height" => 6
 )));
 
-$_notepad = $oPad->getHTML() . we_html_element::htmlDiv(array(
-		"id" => "props"
-		), $oTblProps->getHTML()) . we_html_element::htmlDiv(array(
-		"id" => "view"
-		), $oTblBtnProps->getHTML());
+$_notepad = $oPad->getHTML() .
+	we_html_element::htmlDiv(array("id" => "props"), $oTblProps->getHTML()) .
+	we_html_element::htmlDiv(array("id" => "view"), $oTblBtnProps->getHTML());
 
 $_notepad .= we_html_element::jsElement('
 function toggleTblValidity(){
@@ -287,20 +271,20 @@ function toggleTblValidity(){
 }
 toggleTblValidity();');
 
-print we_html_element::htmlDocType() . we_html_element::htmlHtml(
-		we_html_element::htmlHead(
-			we_html_tools::getHtmlInnerHead(g_l('cockpit', '[notepad]')) . STYLESHEET . we_html_element::cssElement(
-				getCSS()) . we_html_element::linkElement(
-				array(
-					"rel" => "stylesheet",
-					"type" => "text/css",
-					"href" => JS_DIR . "jscalendar/skins/aqua/theme.css",
-					"title" => "Aqua"
-			)) . we_html_element::jsScript(JS_DIR . "jscalendar/calendar.js") .
-			we_html_element::jsScript(WE_INCLUDES_DIR . 'we_language/' . $GLOBALS["WE_LANGUAGE"] . "/calendar.js") .
-			we_html_element::jsScript(JS_DIR . "jscalendar/calendar-setup.js") .
-			we_html_button::create_state_changer() . we_html_element::jsElement(
-				(($type === "pad/pad") ? "
+echo we_html_element::htmlDocType() . we_html_element::htmlHtml(
+	we_html_element::htmlHead(
+		we_html_tools::getHtmlInnerHead(g_l('cockpit', '[notepad]')) . STYLESHEET . we_html_element::cssElement(
+			getCSS()) . we_html_element::linkElement(
+			array(
+				"rel" => "stylesheet",
+				"type" => "text/css",
+				"href" => LIB_DIR . "additional/jscalendar/skins/aqua/theme.css",
+				"title" => "Aqua"
+		)) . we_html_element::jsScript(LIB_DIR . "additional/jscalendar/calendar.js") .
+		we_html_element::jsScript(WE_INCLUDES_DIR . 'we_language/' . $GLOBALS["WE_LANGUAGE"] . "/calendar.js") .
+		we_html_element::jsScript(LIB_DIR . "additional/jscalendar/calendar-setup.js") .
+		we_html_button::create_state_changer() . we_html_element::jsElement(
+			(($type === "pad/pad") ? "
 			var _sObjId='" . we_base_request::_(we_base_request::STRING, 'we_cmd', 0, 5) . "';
 			var _sCls_=parent.gel(_sObjId+'_cls').value;
 			var _sType='pad';
@@ -432,20 +416,20 @@ print we_html_element::htmlDocType() . we_html_element::htmlHtml(
 							weValidUntil = q_curr['ValidUntil'].replace(/-/g, '');
 							if(weValidFrom>weValidUntil) {
 								" . we_message_reporting::getShowMessageCall(
-					g_l('cockpit', '[until_befor_from]'), we_message_reporting::WE_MESSAGE_NOTICE) . "
+				g_l('cockpit', '[until_befor_from]'), we_message_reporting::WE_MESSAGE_NOTICE) . "
 								return false;
 							}
 						}
 						if(q_curr['Title']=='') {
 							" . we_message_reporting::getShowMessageCall(
-					g_l('cockpit', '[title_empty]'), we_message_reporting::WE_MESSAGE_NOTICE) . "
+				g_l('cockpit', '[title_empty]'), we_message_reporting::WE_MESSAGE_NOTICE) . "
 							return false;
 						}
 						var q_ID=gel(_id+'_ID').value;
 						parent.rpc(_ttlB64Esc.concat(','+_sInitProps),(q_ID+';'+encodeURI(csv)),'update','',_ttlB64Esc,_sObjId,'pad/pad',escape(q_curr['Title']),escape(q_curr['Text']));
 					}else{
 						" . we_message_reporting::getShowMessageCall(
-					g_l('cockpit', '[note_not_modified]'), we_message_reporting::WE_MESSAGE_NOTICE) . "
+				g_l('cockpit', '[note_not_modified]'), we_message_reporting::WE_MESSAGE_NOTICE) . "
 					}
 				}else{
 					if(hot){
@@ -455,27 +439,27 @@ print we_html_element::htmlDocType() . we_html_element::htmlHtml(
 							weValidUntil = q_curr['ValidUntil'].replace(/-/g, '');
 							if(weValidFrom>weValidUntil) {
 								" . we_message_reporting::getShowMessageCall(
-					g_l('cockpit', '[until_befor_from]'), we_message_reporting::WE_MESSAGE_NOTICE) . "
+				g_l('cockpit', '[until_befor_from]'), we_message_reporting::WE_MESSAGE_NOTICE) . "
 								return false;
 							} else if(!weValidFrom || !weValidUntil) {
 								" . we_message_reporting::getShowMessageCall(
-					g_l('cockpit', '[date_empty]'), we_message_reporting::WE_MESSAGE_NOTICE) . "
+				g_l('cockpit', '[date_empty]'), we_message_reporting::WE_MESSAGE_NOTICE) . "
 								return false;
 							}
 						} else if(q_curr['Validity'] == 'date' && !q_curr['ValidFrom']){
 								" . we_message_reporting::getShowMessageCall(
-					g_l('cockpit', '[date_empty]'), we_message_reporting::WE_MESSAGE_NOTICE) . "
+				g_l('cockpit', '[date_empty]'), we_message_reporting::WE_MESSAGE_NOTICE) . "
 								return false;
 						}
 						if(q_curr['Title']=='') {
 							" . we_message_reporting::getShowMessageCall(
-					g_l('cockpit', '[title_empty]'), we_message_reporting::WE_MESSAGE_NOTICE) . "
+				g_l('cockpit', '[title_empty]'), we_message_reporting::WE_MESSAGE_NOTICE) . "
 							return false;
 						}
 						parent.rpc(_ttlB64Esc.concat(','+_sInitProps),escape(csv),'insert','',_ttlB64Esc,_sObjId,'pad/pad',escape(q_curr['Title']),escape(q_curr['Text']));
 					}else{
 						" . we_message_reporting::getShowMessageCall(
-					g_l('cockpit', '[title_empty]'), we_message_reporting::WE_MESSAGE_NOTICE) . "
+				g_l('cockpit', '[title_empty]'), we_message_reporting::WE_MESSAGE_NOTICE) . "
 					}
 				}
 			}
@@ -545,20 +529,20 @@ print we_html_element::htmlDocType() . we_html_element::htmlHtml(
 			function setColor(theRow,theRowNum,newColor){
 				fo=document.forms[0];
 				var theCells=null;
-				if(fo.elements['mark'].value!=''||typeof(theRow.style)=='undefined'){
+				if(fo.elements['mark'].value!=''||theRow.style===undefined){
 					return false;
 				}
-				if(typeof(document.getElementsByTagName)!='undefined'){
+				if(document.getElementsByTagName!==undefined){
 					theCells=theRow.getElementsByTagName('td');
 				}
-				else if(typeof(theRow.cells)!='undefined'){
+				else if(theRow.cells!==undefined){
 					theCells=theRow.cells;
 				}else{
 					return false;
 				}
 				var rowCellsCnt=theCells.length;
 				var domDetect=null;
-				if(typeof(window.opera)=='undefined'&&typeof(theCells[0].getAttribute)!='undefined'){
+				if(window.opera===undefined&&theCells[0].getAttribute!==undefined){
 					domDetect=true;
 				}else{
 					domDetect=false;
@@ -587,14 +571,14 @@ print we_html_element::htmlDocType() . we_html_element::htmlHtml(
 				return fixedImplode;
 			}
 		")) . we_html_element::htmlBody(
-			array(
-			"marginwidth" => 0,
-			"marginheight" => 0,
-			"leftmargin" => 0,
-			"topmargin" => 0,
-			"onload" => (($type === "pad/pad") ? "if(parent!=self)init();" : "")
-			), we_html_element::htmlForm(array("style" => "display:inline;"), we_html_element::htmlDiv(
-					array("id" => "pad"), $_notepad .
-					we_html_element::htmlHidden(array("name" => "mark", "value" => "")) .
-					we_html_element::jsElement("calendarSetup();")
+		array(
+		"marginwidth" => 0,
+		"marginheight" => 0,
+		"leftmargin" => 0,
+		"topmargin" => 0,
+		"onload" => (($type === "pad/pad") ? "if(parent!=self)init();" : "")
+		), we_html_element::htmlForm(array("style" => "display:inline;"), we_html_element::htmlDiv(
+				array("id" => "pad"), $_notepad .
+				we_html_element::htmlHidden(array("name" => "mark", "value" => "")) .
+				we_html_element::jsElement("calendarSetup();")
 ))));

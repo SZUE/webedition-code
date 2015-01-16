@@ -204,9 +204,7 @@ if(isset($daten)){
 		case "object": //start output object
 			$orderBy = $DB_WE->escape(we_base_request::_(we_base_request::STRING, 'orderBy', 'obTitle'));
 			$entries = 0;
-			$count_expression = "";
-			$from_expression = "";
-			$where_expression = "";
+			$count_expression = $from_expression = $where_expression = "";
 			if(!empty($fe)){
 				$fe_count = 0;
 
@@ -233,8 +231,8 @@ if(isset($daten)){
 				$entries += $DB_WE->f("dbEntries");
 			}
 			$active_page = we_base_request::_(we_base_request::RAW, 'page', 0); // Pager: determine the current page
-			$docType2 = isset($docType2) ? "objectFile" : "objectFile"; // Pager: determine the current page
-			$typeAlias = isset($typeAlias) ? "object" : "object"; // Pager: determine the current page
+			$docType2 = we_base_ContentTypes::OBJECT_FILE; // Pager: determine the current page
+			$typeAlias = we_base_ContentTypes::OBJECT; // Pager: determine the current page
 			if(!isset($classSelectTable)){
 				$classSelectTable = "";
 			}

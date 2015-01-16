@@ -738,14 +738,14 @@ this.selectedIndex = 0;' .
 	 * @return string
 	 */
 	static function htmlYesNoCancelDialog($text = '', $img = '', $yes = '', $no = '', $cancel = '', $yesHandler = '', $noHandler = '', $cancelHandler = '', $script = ''){
-		$cancelButton = (empty($cancel) ? '' : we_html_button::create_button('cancel', 'javascript:' . $cancelHandler));
-		$noButton = (empty($no) ? '' : we_html_button::create_button('no', 'javascript:' . $noHandler));
-		$yesButton = (empty($yes) ? '' : we_html_button::create_button('yes', 'javascript:' . $yesHandler) );
+		$cancelButton = ($cancel ? we_html_button::create_button('cancel', 'javascript:' . $cancelHandler) : '');
+		$noButton = ($no ? we_html_button::create_button('no', 'javascript:' . $noHandler) : '');
+		$yesButton = ($yes ? we_html_button::create_button('yes', 'javascript:' . $yesHandler) : '');
 
 
 		$content = new we_html_table(array(
 			'cellpadding' => 10, 'cellspacing' => 0, 'border' => 0
-			), 1, (empty($img) ? 1 : 2));
+			), 1, ($img ? 2 : 1));
 
 		if(!empty($img) && file_exists($_SERVER['DOCUMENT_ROOT'] . $img)){
 			$size = getimagesize($_SERVER['DOCUMENT_ROOT'] . $img);
@@ -758,7 +758,7 @@ this.selectedIndex = 0;' .
 			)));
 		}
 
-		$content->setCol(0, (empty($img) ? 0 : 1), array(
+		$content->setCol(0, ($img ? 1 : 0), array(
 			'class' => 'defaultfont'
 			), $text);
 
@@ -782,15 +782,6 @@ this.selectedIndex = 0;' .
 			$tmp[$key] = $value;
 		}
 		return $tmp;
-	}
-
-	private static function parseAttribs($attribs){
-		$attr = $matches = array();
-		preg_match_all('|(\w+)\s*=\s*(["\'])([^\2]*)\2|U', $attribs, $matches, PREG_SET_ORDER);
-		foreach($matches as $match){
-			$attr[$match[1]] = ($match[2] === '\'' ? str_replace('"', '\"', $match[3]) : $match[3]);
-		}
-		return $attr;
 	}
 
 	/* displays a grey box with text and an icon
@@ -820,28 +811,29 @@ this.selectedIndex = 0;' .
 		}
 
 		$text = ($useHtmlSpecialChars) ? oldHtmlspecialchars($text, ENT_COMPAT, 'ISO-8859-1', false) : $text;
-		$js = '';
 
 		if($clip > 0){
 			$unique = md5(uniqid(__FUNCTION__, true)); // #6590, changed from: uniqid(microtime())
 			$smalltext = substr($text, 0, $clip) . ' ... ';
 			$js = we_html_element::jsElement('
-		var state_' . $unique . '=0;
-			function clip_' . $unique . '(){
-					var text = document.getElementById("td_' . $unique . '");
-					var btn = document.getElementById("btn_' . $unique . '");
+var state_' . $unique . '=0;
+function clip_' . $unique . '(){
+		var text = document.getElementById("td_' . $unique . '");
+		var btn = document.getElementById("btn_' . $unique . '");
 
-					if(state_' . $unique . '==0){
-						text.innerHTML = "' . addslashes($text) . '";
-						btn.innerHTML = "<a href=\'javascript:clip_' . $unique . '();\'><img src=\'' . BUTTONS_DIR . 'btn_direction_down.gif\' alt=\'down\' border=\'0\'></a>";
-						state_' . $unique . '=1;
-					}else {
-						text.innerHTML = "' . addslashes($smalltext) . '";
-						btn.innerHTML = "<a href=\'javascript:clip_' . $unique . '();\'><img src=\'' . BUTTONS_DIR . 'btn_direction_right.gif\' alt=\'right\' border=\'0\'></a>";
-						state_' . $unique . '=0;
-					}
-			}');
+		if(state_' . $unique . '==0){
+			text.innerHTML = "' . addslashes($text) . '";
+			btn.innerHTML = "<a href=\'javascript:clip_' . $unique . '();\'><img src=\'' . BUTTONS_DIR . 'btn_direction_down.gif\' alt=\'down\' border=\'0\'></a>";
+			state_' . $unique . '=1;
+		}else {
+			text.innerHTML = "' . addslashes($smalltext) . '";
+			btn.innerHTML = "<a href=\'javascript:clip_' . $unique . '();\'><img src=\'' . BUTTONS_DIR . 'btn_direction_right.gif\' alt=\'right\' border=\'0\'></a>";
+			state_' . $unique . '=0;
+		}
+}');
 			$text = $smalltext;
+		} else {
+			$js = '';
 		}
 
 		if(strpos($width, '%') === false){

@@ -24,18 +24,6 @@
  */
 class we_glossary_tree extends weMainTree{
 
-	function __construct($frameset = "", $topFrame = "", $treeFrame = "", $cmdFrame = ""){
-
-		parent::__construct($frameset, $topFrame, $treeFrame, $cmdFrame);
-
-		$this->setStyles(array(
-			'.item {color: black; font-size: ' . (((we_base_browserDetect::isUNIX()) ? "11px" : "9px")) . '; font-family: ' . g_l('css', '[font_family]') . ';}',
-			'.item a { text-decoration:none;}',
-			'.group {color: black; font-weight: bold; font-size: ' . (((we_base_browserDetect::isUNIX()) ? "11px" : "9px")) . '; font-family: ' . g_l('css', '[font_family]') . ';}',
-			'.group a { text-decoration:none;}'
-		));
-	}
-
 	function getJSOpenClose(){
 		return '
 function openClose(id){
@@ -44,14 +32,12 @@ function openClose(id){
 		return;
 	}
 	var eintragsIndex = indexOfEntry(id);
-	var openstatus;
-
-	openstatus=(treeData[eintragsIndex].open==0?1:0);
+	var openstatus=(treeData[eintragsIndex].open==0?1:0);
 
 	treeData[eintragsIndex].open=openstatus;
 
 	if(openstatus && treeData[eintragsIndex].loaded!=1){
-		' . $this->cmdFrame . '.location = "' . $this->frameset . '?pnt=cmd&pid="+id+
+		' . $this->cmdFrame . '.location =treeData.frameset+"?pnt=cmd&pid="+id+
 			(sort!="" ?
 			("&sort="+sort) :
 			"");
@@ -70,9 +56,9 @@ function updateEntry(id,text,pid,pub){
 	var ai = 1;
 	while (ai <= treeData.len) {
 			if (treeData[ai].id==id) {
-					treeData[ai].text=text;
-					treeData[ai].parentid=pid;
-					treeData[ai].published=pub;
+				treeData[ai].text=text;
+				treeData[ai].parentid=pid;
+				treeData[ai].published=pub;
 			}
 			ai++;
 	}
@@ -83,29 +69,29 @@ drawTree();
 	function getJSTreeFunctions(){
 		return weTree::getJSTreeFunctions() . '
 function doClick(id,typ){
-		var cmd = "";
-		if(top.content.hot == "1") {
-			if(confirm("' . g_l('modules_glossary', '[save_changed_glossary]') . '")) {
-				cmd = "save_export";
-				top.content.we_cmd("save_glossary");
-			} else {
-				top.content.usetHot();
-				var node=' . $this->topFrame . '.get(id);
-				' . $this->topFrame . '.editor.edbody.location="' . $this->frameset . '?pnt=edbody&cmd=" + node.cmd + "&cmdid="+node.id+"&tabnr="+' . $this->topFrame . '.activ_tab;
-			}
+	var cmd = "";
+	if(top.content.hot == "1") {
+		if(confirm("' . g_l('modules_glossary', '[save_changed_glossary]') . '")) {
+			cmd = "save_export";
+			top.content.we_cmd("save_glossary");
 		} else {
+			top.content.usetHot();
 			var node=' . $this->topFrame . '.get(id);
-			' . $this->topFrame . '.editor.edbody.location="' . $this->frameset . '?pnt=edbody&cmd=" + node.cmd + "&cmdid="+node.id+"&tabnr="+' . $this->topFrame . '.activ_tab;
+			' . $this->topFrame . '.editor.edbody.location=treeData.frameset+"?pnt=edbody&cmd=" + node.cmd + "&cmdid="+node.id+"&tabnr="+' . $this->topFrame . '.activ_tab;
 		}
+	} else {
+		var node=' . $this->topFrame . '.get(id);
+		' . $this->topFrame . '.editor.edbody.location=treeData.frameset+"?pnt=edbody&cmd=" + node.cmd + "&cmdid="+node.id+"&tabnr="+' . $this->topFrame . '.activ_tab;
+	}
 }' . $this->topFrame . '.loaded=1;';
 	}
 
 	function getJSStartTree(){
 
 		return 'function startTree(){
-			' . $this->cmdFrame . '.location="' . $this->frameset . '?pnt=cmd&pid=0";
-			drawTree();
-		}';
+	' . $this->cmdFrame . '.location=treeData.frameset+"?pnt=cmd&pid=0";
+	drawTree();
+}';
 	}
 
 	function getJSIncludeFunctions(){
@@ -117,35 +103,27 @@ function doClick(id,typ){
 
 		return '
 function makeNewEntry(icon,id,pid,txt,open,ct,tab,pub){
-		if(treeData[indexOfEntry(pid)]){
-			if(treeData[indexOfEntry(pid)].loaded){
+	if(treeData[indexOfEntry(pid)]){
+		if(treeData[indexOfEntry(pid)].loaded){
+		 ct=(ct=="folder"?"group":"item");
+			var attribs={
+			"id":id,
+			"icon":icon,
+			"text":txt,
+			"parentid":pid,
+			"open":open,
+			"tooltip":id,
+			"typ":ct,
+			"disabled":0,
+			"published":(ct=="item"?pub:1),
+			"selected":0
+			};
 
-				if(ct=="folder") ct="group";
-				else ct="item";
+			treeData.addSort(new node(attribs));
 
-				var attribs=new Array();
-
-				attribs["id"]=id;
-				attribs["icon"]=icon;
-				attribs["text"]=txt;
-				attribs["parentid"]=pid;
-				attribs["open"]=open;
-
-				attribs["tooltip"]=id;
-				attribs["typ"]=ct;
-
-
-				attribs["disabled"]=0;
-				if(ct=="item") attribs["published"]=pub;
-				else attribs["published"]=1;
-
-				attribs["selected"]=0;
-
-				treeData.addSort(new node(attribs));
-
-				drawTree();
-			}
+			drawTree();
 		}
+	}
 }';
 	}
 
@@ -158,7 +136,7 @@ function makeNewEntry(icon,id,pid,txt,open,ct,tab,pub){
 function showSegment(){
 	parentnode=' . $this->topFrame . '.get(this.parentid);
 	parentnode.clear();
-	' . $this->cmdFrame . '.location="' . $this->frameset . '?pnt=cmd&pid="+this.parentid+"&offset="+this.offset;
+	' . $this->cmdFrame . '.location=treeData.frameset+"?pnt=cmd&pid="+this.parentid+"&offset="+this.offset;
 	drawTree();
 }';
 	}

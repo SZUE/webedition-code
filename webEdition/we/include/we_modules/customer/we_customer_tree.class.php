@@ -24,80 +24,49 @@
  */
 class we_customer_tree extends weTree{
 
-	function __construct($frameset = '', $topFrame = '', $treeFrame = '', $cmdFrame = ''){
-		parent::__construct($frameset, $topFrame, $treeFrame, $cmdFrame);
-
-		$this->setStyles(array(
-			'.item {color: black; font-size: ' . (((we_base_browserDetect::isUNIX()) ? "11px" : "9px")) . '; font-family: ' . g_l('css', '[font_family]') . ';}',
-			'.item a { text-decoration:none;}',
-			'.loginDenied {color:red;}',
-			'.group {color: black; font-weight: bold; font-size: ' . (((we_base_browserDetect::isUNIX()) ? "11px" : "9px")) . '; font-family: ' . g_l('css', '[font_family]') . ';}',
-			'.group a { text-decoration:none;}',
-		));
-	}
-
 	function getJSCustomDraw(){
 		return array_merge(parent::getJSCustomDraw(), array(
 			"sort" => '
 var newAst = zweigEintrag;
-var zusatz = (ai == nf.laenge) ? "end" : "";
-var oc_img;
-var oc_js;
+var oc_js=treeData.topFrame+".openClose(\'" + nf[ai].id + "\')\"";
 
-oc_img="' . $this->tree_image_dir . '"+(nf[ai].open == 0?"auf":"zu")+zusatz+".gif";
-oc_js=treeData.topFrame+".openClose(\'" + nf[ai].id + "\')\"";
-
-row+="&nbsp;&nbsp;<a href=\"javascript:"+oc_js+" border=0><img src="+oc_img+" width=19 height=18 align=absmiddle border=0 Alt=\"\"></a>";
-row+="<a name=\'_"+nf[ai].id+"\' href=\"javascript://\" onclick=\""+oc_js+";return true;\" border=0>";
-row+="<img src=' . $this->tree_image_dir . 'icons/"+nf[ai].icon+" width=16 height=18 align=absmiddle border=0 Alt=\"\">";
-row+="</a>";
-row+="<a name=\'_"+nf[ai].id+"\' href=\"javascript://\" onclick=\""+oc_js+";return true;\">";
-row+="<label style=\"cursor:pointer\" id=\"lab_"+nf[ai].id+"\" class=\""+treeData.node_layout[nf[ai].state]+"\">&nbsp;" + nf[ai].text+"</label>";
-row+="</a>";
-row+="&nbsp;&nbsp;<br/>\n";
+row+="&nbsp;&nbsp;<a href=\"javascript:"+oc_js+" border=0><img src=\""+treeData.tree_image_dir+(nf[ai].open == 0?"auf":"zu")+(ai == nf.laenge ? "end" : "")+".gif\" class=\"treeKreuz\" alt=\"\"></a>"+
+	"<a name=\'_"+nf[ai].id+"\' href=\"javascript://\" onclick=\""+oc_js+";return true;\" border=0>"+
+	"<img src=\""+treeData.tree_image_dir+"icons/"+nf[ai].icon+"\" alt=\"\">"+
+	"</a>"+
+	"<a name=\'_"+nf[ai].id+"\' href=\"javascript://\" onclick=\""+oc_js+";return true;\">"+
+	"<label id=\"lab_"+nf[ai].id+"\" class=\""+treeData.node_layout[nf[ai].state]+"\">&nbsp;" + nf[ai].text+"</label>"+
+	"</a>"+
+	"&nbsp;&nbsp;<br/>\n";
 
 if (nf[ai].open){
-	newAst = newAst + "<img src=' . $this->tree_image_dir . '"+(ai == nf.laenge?"leer.gif":"strich2.gif")+" width=19 height=18 align=absmiddle border=0>";
+	newAst = newAst + "<img src=\""+treeData.tree_image_dir+(ai == nf.laenge?"leer.gif":"strich2.gif")+"\" class=\"treeKreuz\" />";
 	row+=draw(nf[ai].id,newAst);
-}
-			',
+}',
 			"group" => '
 var newAst = zweigEintrag;
-var zusatz = (ai == nf.len) ? "end" : "";
-var oc_img;
-var oc_js;
+var oc_js=treeData.topFrame+".setScrollY();"+treeData.topFrame+".openClose(\'" + nf[ai].id + "\')\"";
+row+="&nbsp;&nbsp;<a href=\"javascript:"+oc_js+" border=0><img src=\""+treeData.tree_image_dir+(nf[ai].open == 1?"zu":"auf")+(ai == nf.len ? "end" : "")+".gif\" class=\"treeKreuz\" alt=\"\"></a>";
 
-oc_img="' . $this->tree_image_dir . '"+(nf[ai].open == 1?"zu":"auf")+zusatz+".gif";
-if(nf[ai].disabled!=1){
-	oc_js=treeData.topFrame+".setScrollY();"+treeData.topFrame+".openClose(\'" + nf[ai].id + "\')\"";
-} else{
-	oc_js="//";
-}
-oc_js=treeData.topFrame+".setScrollY();"+treeData.topFrame+".openClose(\'" + nf[ai].id + "\')\"";
-row+="&nbsp;&nbsp;<a href=\"javascript:"+oc_js+" border=0><img src="+oc_img+" width=19 height=18 align=absmiddle border=0 Alt=\"\"></a>";
+nf[ai].icon="folder"+(nf[ai].open==1 ? "open" : "")+(nf[ai].disabled==1 ? "_disabled" : "")+".gif";
 
-var folder_icon;
-folder_icon="folder"+(nf[ai].open==1 ? "open" : "")+(nf[ai].disabled==1 ? "_disabled" : "")+".gif";
-nf[ai].icon=folder_icon;
-
-if(nf[ai].disabled!=1){
-	row+="<a name=\'_"+nf[ai].id+"\' href=\"javascript:"+oc_js+"\">";
-}
-row+="<img src=' . $this->tree_image_dir . 'icons/"+nf[ai].icon+" width=16 height=18 align=absmiddle border=0 alt=\"\">";
-if(nf[ai].disabled!=1){
-	row+="</a>";
-	row+="<a name=\'_"+nf[ai].id+"\' href=\"javascript:"+oc_js+"\">";
-}
-row+="<label style=\"cursor:pointer;\" id=\"lab_"+nf[ai].id+"\" class=\""+nf[ai].getlayout()+"\">&nbsp;" + nf[ai].text+"</label>";
-if(nf[ai].disabled!=1){
-	row+="</a>";
-}
-row+="&nbsp;&nbsp;<br/>\n";
+row+=(nf[ai].disabled!=1?
+		"<a name=\'_"+nf[ai].id+"\' href=\"javascript:"+oc_js+"\">":
+		"")+
+	"<img src=\""+treeData.tree_image_dir+"icons/"+nf[ai].icon+"\" alt=\"\">"+
+	(nf[ai].disabled!=1?
+		"</a><a name=\'_"+nf[ai].id+"\' href=\"javascript:"+oc_js+"\">":
+		"")+
+	"<label id=\"lab_"+nf[ai].id+"\" class=\""+nf[ai].getlayout()+"\">&nbsp;" + nf[ai].text+"</label>"+
+	(nf[ai].disabled!=1?
+		"</a>":
+		"")+
+	"&nbsp;&nbsp;<br/>";
 if (nf[ai].open==1){
-	newAst = newAst + "<img src=' . $this->tree_image_dir . '"+(ai == nf.len?"leer.gif":"strich2.gif")+" width=19 height=18 align=absmiddle border=0>";
+	newAst += "<img src=\""+treeData.tree_image_dir+(ai == nf.len?"leer.gif":"strich2.gif")+"\" class=\"treeKreuz\"/>";
 	row+=draw(nf[ai].id,newAst);
-}
-			'));
+}'
+		));
 	}
 
 	function getJSOpenClose(){
@@ -108,13 +77,12 @@ function openClose(id){
 		return;
 	}
 	var eintragsIndex = indexOfEntry(id);
-	var openstatus;
 
 	if(treeData[eintragsIndex].typ=="group"){
 		sort=' . $this->topFrame . '.document.we_form_treeheader.sort.value;
 	}
 
-	openstatus=(treeData[eintragsIndex].open==0?1:0);
+	var openstatus=(treeData[eintragsIndex].open==0?1:0);
 
 	treeData[eintragsIndex].open=openstatus;
 
@@ -123,7 +91,7 @@ function openClose(id){
 		sort = encodeURI(sort);
 		id = id.replace(/\+/g,"%2B");
 		sort = sort.replace(/\+/g,"%2B");
-		' . $this->cmdFrame . '.location="' . $this->frameset . '?pnt=cmd&pid="+id+(sort!=""?"&sort="+sort:"");
+		' . $this->cmdFrame . '.location=treeData.frameset+"?pnt=cmd&pid="+id+(sort!=""?"&sort="+sort:"");
 	}else{
 		drawTree();
 	}
@@ -136,16 +104,16 @@ function openClose(id){
 	function getJSUpdateItem(){
 		return '
 function updateEntry(id,text){
-			var ai = 1;
-			while (ai <= treeData.len) {
-					if (treeData[ai].id==id) {
-						text = text.replace(/</g,"&lt;");
-			text = text.replace(/>/g,"&gt;");
-							treeData[ai].text=text;
-					}
-					ai++;
+	var ai = 1;
+	while (ai <= treeData.len) {
+			if (treeData[ai].id==id) {
+				text = text.replace(/</g,"&lt;");
+				text = text.replace(/>/g,"&gt;");
+				treeData[ai].text=text;
 			}
-			drawTree();
+			ai++;
+	}
+	drawTree();
 }';
 	}
 
@@ -153,8 +121,9 @@ function updateEntry(id,text){
 		return parent::getJSTreeFunctions() . '
 function doClick(id,typ){
 	var node=' . $this->topFrame . '.get(id);
-		if(node.typ=="item")
+		if(node.typ=="item"){
 		' . $this->topFrame . '.we_cmd(\'customer_edit\',node.id,node.typ,node.table);
+		}
 }
 ' . $this->topFrame . '.loaded=1;';
 	}
@@ -162,7 +131,7 @@ function doClick(id,typ){
 	function getJSStartTree(){
 		return '
 function startTree(){
-	' . $this->cmdFrame . '.location="' . $this->frameset . '?pnt=cmd&pid=0";
+	' . $this->cmdFrame . '.location=treeData.frameset+"?pnt=cmd&pid=0";
 	drawTree();
 }';
 	}
@@ -234,9 +203,10 @@ function showSegment(){
 	function getJSGetLayout(){
 		return '
 function getLayout(){
-		if(this.typ=="threedots") return treeData.node_layouts["threedots"];
+		if(this.typ=="threedots"){
+			return treeData.node_layouts["threedots"];
+		}
 		var layout_key=(this.typ=="group" ? "group" : "item");
-
 
 		return treeData.node_layouts[layout_key]+(this.typ=="item" && this.published==1 ? " loginDenied" : "");
 }';

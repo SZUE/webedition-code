@@ -266,43 +266,7 @@ class we_wysiwyg_editor{
 }') .
 			we_html_element::jsScript(WEBEDITION_DIR . 'editors/content/tinymce/jscripts/tiny_mce/tiny_mce.js') .
 			($loadDialogRegistry ? we_html_element::jsScript(JS_DIR . 'weTinyMceDialogs.js') : '') .
-			we_html_element::jsScript(JS_DIR . 'weTinyMceFunctions.js') .
-			we_html_element::jsElement('
-function tinyMCECallRegisterDialog(win,action){
-	if(typeof(top.isRegisterDialogHere) != "undefined"){
-		try{
-			top.weRegisterTinyMcePopup(win,action);
-		} catch(err) {}
-	} else {
-		if(typeof(top.opener.isRegisterDialogHere) != "undefined"){
-			try{
-				top.opener.weRegisterTinyMcePopup(win,action);
-			} catch(err){}
-		} else {
-			try{
-				top.opener.tinyMCECallRegisterDialog(win,action);
-			} catch(err){}
-		}
-	}
-}') .
-			we_html_element::jsElement('
-function weWysiwygSetHiddenTextSync(){
-	weWysiwygSetHiddenText();
-	setTimeout(weWysiwygSetHiddenTextSync,500);
-}
-
-function weWysiwygSetHiddenText(arg) {
-	try {
-		if (weWysiwygIsIntialized) {
-			for (var i = 0; i < we_wysiwygs.length; i++) {
-				we_wysiwygs[i].setHiddenText(arg);
-			}
-		}else{
-			}
-	} catch(e) {
-		// Nothing
-	}
-}');
+			we_html_element::jsScript(JS_DIR . 'weTinyMceFunctions.js');
 	}
 
 	function getAllCmds(){
@@ -963,7 +927,7 @@ var tinyMceConfObject__' . $this->fieldName_clean . ' = {
 	//paste_text_use_dialog: true,
 	//fullscreen_new_window: true,
 	content_css : "' . WEBEDITION_DIR . 'editors/content/tinymce/we_tinymce/contentCssFirst.php?' . time() . '=,' . $contentCss . WEBEDITION_DIR . 'editors/content/tinymce/we_tinymce/contentCssLast.php?' . time() . '=&tinyMceBackgroundColor=' . $this->bgcol . '",
-	popup_css_add : "' . WEBEDITION_DIR . 'editors/content/tinymce/we_tinymce/tinyDialogCss.php",
+	popup_css_add : "' . WEBEDITION_DIR . 'editors/content/tinymce/we_tinymce/tinyDialogCss.css' . (we_base_browserDetect::isMAC() ? ',' . WEBEDITION_DIR . 'editors/content/tinymce/we_tinymce/tinyDialogCss.php' : '') . '",
 	' . (in_array('template', $allCommands) ? $this->getTemplates() : '') . '
 
 	// Skin options
@@ -1019,7 +983,7 @@ var tinyMceConfObject__' . $this->fieldName_clean . ' = {
 				hasOpener = opener ? true : false;
 			} catch(e){}
 
-			if(typeof we_tinyMCE_' . $this->fieldName_clean . '_init != "undefined"){
+			if(we_tinyMCE_' . $this->fieldName_clean . '_init !== undefined){
 				try{
 					we_tinyMCE_' . $this->fieldName_clean . '_init(ed);
 				} catch(e){
@@ -1095,11 +1059,11 @@ var tinyMceConfObject__' . $this->fieldName_clean . ' = {
 		var editorLevel = "";
 		var weEditorFrame = null;
 
-		if(typeof(_EditorFrame) != "undefined"){
+		if(_EditorFrame !== undefined){
 			editorLevel = "inline";
 			weEditorFrame = _EditorFrame;
 		} else {
-			if(top.opener != null && typeof(top.opener.top.weEditorFrameController) != "undefined" && typeof(top.isWeDialog) == "undefined"){
+			if(top.opener !== null && top.opener.top.weEditorFrameController !== undefined && top.isWeDialog === undefined){
 				editorLevel = "popup";
 				weEditorFrame = top.opener.top.weEditorFrameController;
 			} else {

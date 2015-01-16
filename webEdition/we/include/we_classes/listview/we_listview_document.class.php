@@ -156,9 +156,9 @@ class we_listview_document extends we_listview_base{
 					break;
 			}
 		}
-		$orderstring = empty($order) ? '' : ' ORDER BY ' . implode(',', $order);
+		$orderstring = $order ? ' ORDER BY ' . implode(',', $order) : '';
 		$joinstring = implode('', $joins);
-		$orderwhereString = implode(' AND ', $orderWhere) . (empty($orderWhere) ? '' : ' AND ');
+		$orderwhereString = implode(' AND ', $orderWhere) . ($orderWhere ? ' AND ' : '');
 
 		$sql_tail = ($this->cats || $this->categoryids ? we_category::getCatSQLTail($this->cats, FILE_TABLE, $this->catOr, $this->DB_WE, 'Category', $this->categoryids) : '');
 

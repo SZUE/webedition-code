@@ -353,7 +353,7 @@ abstract class we_rebuild_wizard{
 					top.wizbusy.back_enabled = top.wizbusy.switch_button_state("back", "back_enabled", "enabled");
 					top.wizbusy.next_enabled = top.wizbusy.switch_button_state("next", "next_enabled", "enabled");
 				}else{
-					setTimeout("set_button_state()",300);
+					setTimeout(set_button_state,300);
 				}
 			}
 			set_button_state();';
@@ -767,14 +767,14 @@ abstract class we_rebuild_wizard{
 		}
 
 		if($tail){
-			$body = we_html_element::htmlBody(array('style' => 'background-color:grey;margin: 0px;position:fixed;top:0px;left:0px;right:0px;bottom:0px;border:0px none;', "onload" => "wizcmd.location='" . WEBEDITION_DIR . "we_cmd.php?we_cmd[0]=rebuild&amp;fr=body" . $tail . "';")
+			$body = we_html_element::htmlBody(array('style' => 'background-color:grey;position:fixed;top:0px;left:0px;right:0px;bottom:0px;border:0px none;', "onload" => "wizcmd.location='" . WEBEDITION_DIR . "we_cmd.php?we_cmd[0]=rebuild&amp;fr=body" . $tail . "';")
 							, we_html_element::htmlDiv(array('style' => 'position:absolute;top:0px;bottom:0px;left:0px;right:0px;')
 									, we_html_element::htmlIFrame('wizbusy', WEBEDITION_DIR . "we_cmd.php?we_cmd[0]=rebuild&amp;fr=busy&amp;dc=1", 'position:absolute;top:0px;bottom:0px;left:0px;right:0px;overflow: hidden') .
 									we_html_element::htmlIFrame('wizcmd', "about:blank", 'position:absolute;bottom:0px;height:0px;left:0px;right:0px;overflow: hidden;')
 			));
 		} else {
 			$height = (we_base_browserDetect::isFF() ? 60 : 40);
-			$body = we_html_element::htmlBody(array('style' => 'background-color:grey;margin: 0px;position:fixed;top:0px;left:0px;right:0px;bottom:0px;border:0px none;')
+			$body = we_html_element::htmlBody(array('style' => 'background-color:grey;position:fixed;top:0px;left:0px;right:0px;bottom:0px;border:0px none;')
 							, we_html_element::htmlDiv(array('style' => 'position:absolute;top:0px;bottom:0px;left:0px;right:0px;')
 									, we_html_element::htmlIFrame('wizbody', WEBEDITION_DIR . "we_cmd.php?we_cmd[0]=rebuild&amp;fr=body", 'position:absolute;top:0px;bottom:' . $height . 'px;left:0px;right:0px;overflow: hidden') .
 									we_html_element::htmlIFrame('wizbusy', WEBEDITION_DIR . "we_cmd.php?we_cmd[0]=rebuild&amp;fr=busy", 'position:absolute;height:' . $height . 'px;bottom:0px;left:0px;right:0px;overflow: hidden') .
@@ -804,7 +804,7 @@ abstract class we_rebuild_wizard{
 						f.target="wizbody";
 						break;
 					case "next":
-						if (typeof(document._errorMessage) != "undefined" && document._errorMessage !== ""){
+						if (document._errorMessage !== undefined && document._errorMessage !== ""){
 							' . we_message_reporting::getShowMessageCall(g_l('rebuild', '[noFieldsChecked]'), we_message_reporting::WE_MESSAGE_ERROR) . '
 							return;
 						} else {
@@ -953,7 +953,7 @@ abstract class we_rebuild_wizard{
 					top.wizbusy.back_enabled = top.wizbusy.switch_button_state("back", "back_enabled", "enabled");
 					top.wizbusy.next_enabled = top.wizbusy.switch_button_state("next", "next_enabled", "enabled");
 				}else{
-					setTimeout("set_button_state()",300);
+					setTimeout(set_button_state,300);
 				}
 			}
 			set_button_state();';

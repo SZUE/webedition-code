@@ -171,7 +171,7 @@ function we_trashButUp(but){
 }
 
 function wedelRow(nr,but){
-	if(typeof but.src === "undefined" || but.src.indexOf("disabled") == -1){
+	if(but.src === undefined || but.src.indexOf("disabled") == -1){
 		var prefix =  "div_uploadFiles_";
 		var num = -1;
 		var z = 0;
@@ -194,7 +194,7 @@ function wedelRow(nr,but){
 
 function checkButtons(){
 	try{
-		if(typeof(document.JUpload)=="undefined"||(typeof(document.JUpload.isActive)!="function")||document.JUpload.isActive()==false){
+		if(document.JUpload===undefined||(typeof(document.JUpload.isActive)!="function")||document.JUpload.isActive()==false){
 			checkFileinput();
 			window.setTimeout(function(){checkButtons()},1000);
 			//recheck
@@ -220,7 +220,7 @@ function setApplet() {
 		buttJUDiv.style.display="block";
 	}
 
-	//setTimeout("document.JUpload.jsRegisterUploaded(\"refreshTree\");",3000);
+	//setTimeout(document.JUpload.jsRegisterUploaded("refreshTree"),3000);
 }
 		' : '') .
 			we_html_element::jsScript(JS_DIR . "windows.js");
@@ -608,7 +608,7 @@ function weCheckAC(j){
 
 function cancel() {
 	var cf = top.imgimportcontent;
-	if(typeof cf.weFileUpload !== "undefined"){
+	if(cf.weFileUpload !== undefined){
 		cf.we_FileUpload.cancelUpload();
 	} else {
 		top.close();
@@ -623,7 +623,7 @@ function next() {
 		cf.document.we_startform.jsRequirementsOk.value = " . ($this->jsRequirementsOk ? 1 : 0) . ";
 		cf.document.we_startform.submit();
 	} else {
-		if(cf.we_FileUpload !== 'undefined'){
+		if(cf.we_FileUpload !== undefined){
 			cf.we_FileUpload.startUpload();
 		}
 	}
@@ -942,7 +942,7 @@ function next() {
 		$_step = we_base_request::_(we_base_request::INT, 'step', -1);
 
 		// set and return html code
-		$body = we_html_element::htmlBody(array('style' => 'background-color:grey;margin: 0px;position:fixed;top:0px;left:0px;right:0px;bottom:0px;border:0px none;')
+		$body = we_html_element::htmlBody(array('style' => 'background-color:grey;position:fixed;top:0px;left:0px;right:0px;bottom:0px;border:0px none;')
 				, we_html_element::htmlDiv(array('style' => 'position:absolute;top:0px;bottom:0px;left:0px;right:0px;')
 					, we_html_element::htmlIFrame('imgimportcontent', WEBEDITION_DIR . "we_cmd.php?we_cmd[0]=import_files&cmd=content&jsRequirementsOk=" . ($this->jsRequirementsOk ? 1 : 0) . ($_step > -1 ? '&step=' . $_step : ''), 'position:absolute;top:0px;bottom:40px;left:0px;right:0px;overflow: auto') .
 					we_html_element::htmlIFrame('imgimportbuttons', WEBEDITION_DIR . "we_cmd.php?we_cmd[0]=import_files&cmd=buttons&jsRequirementsOk=" . ($this->jsRequirementsOk ? 1 : 0) . ($_step > -1 ? '&step=' . $_step : ''), 'position:absolute;bottom:0px;height:40px;left:0px;right:0px;overflow: hidden;')
