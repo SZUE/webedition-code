@@ -382,12 +382,12 @@ abstract class we_database_base{
 
 		$this->Insert_ID = 0;
 		$this->Affected_Rows = 0;
-		$isSelect = stripos($Query_String, 'select')===0;
+		$isSelect = stripos($Query_String, 'select') === 0;
 		//FIX for current MySQL Versions which do not cache queries with dates
 		if($isSelect){
 			$Query_String = str_replace(array('CURDATE()', 'CURRENT_DATE()'), '"' . $date . '"', $Query_String);
 		}
-		//FIX for current MySQL Versions which do not cache queries with dates
+
 		$this->Query_ID = $this->_query($Query_String, $unbuffered);
 		$this->Errno = $this->errno();
 		$this->Error = $this->error();
@@ -427,7 +427,7 @@ abstract class we_database_base{
 				'rows' => $this->num_rows(),
 				'explain' => array()
 			);
-			if(stripos($Query_String, 'select') !== FALSE){
+			if($isSelect){
 				$this->Query_ID = $this->_query('EXPLAIN ' . $Query_String);
 
 				while($this->next_record(MYSQL_ASSOC)){
@@ -999,7 +999,7 @@ abstract class we_database_base{
 	 * move a column to a new position inside the table
 	 * @param string $tab tablename
 	 * @param string $colName the name of the col to move
-	 * @param string $newPos the new position (possible: FIRST, AFTER colname)
+	 * @param string $newPos the new position (possible: FIRST, colname)
 	 */
 	public function moveCol($tab, $colName, $newPos){
 		//get the old col def, use for alter table.
@@ -1081,32 +1081,10 @@ abstract class we_database_base{
 	 */
 	public static function getMysqlVer(/* $nodots = true */){
 		$DB_WE = new DB_WE();
-		$res = f('SELECT VERSION()', '', $DB_WE);
+		$res = f('SELECT VERSION()', '', $DB_WE)? : f('SHOW VARIABLES LIKE "version"', 'Value', $DB_WE);
 
-		if($res){
-			$res = explode('-', $res);
-		} else {
-			$res = f('SHOW VARIABLES LIKE "version"', 'Value', $DB_WE);
-			if($res){
-				$res = explode('-', $res);
-			}
-		}
-		/* if(isset($res)){
-		  if($nodots){
-		  $strver = str_replace('.', '', $res[0]);
-		  $ver = (int) $strver;
-		  if(strlen($ver) < 4){
-		  $ver = sprintf('%04d', $ver);
-		  if(substr($ver, 0, 1) == '0'){
-		  $ver = (int) (substr($ver, 1) . '0');
-		  }
-		  }
-
-		  return $ver;
-		  }
-		  return $res[0];
-		  } */
-		return '';
+		$res = explode('-', $res);
+		return $res[0];
 	}
 
 	/**

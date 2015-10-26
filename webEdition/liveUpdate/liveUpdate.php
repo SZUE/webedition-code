@@ -24,9 +24,10 @@
 if(file_exists($_SERVER['DOCUMENT_ROOT'] . '/webEdition/liveUpdate/includes/proxysettings.inc.php')){
 	include_once($_SERVER['DOCUMENT_ROOT'] . '/webEdition/liveUpdate/includes/proxysettings.inc.php');
 }
+require_once($_SERVER['DOCUMENT_ROOT'] . '/webEdition/we/include/we_autoload.inc.php');
 
-if(is_dir(WEBEDITION_PATH . 'liveUpdate/updateClient')){
-	we_base_file::deleteLocalFolder(WEBEDITION_PATH . 'liveUpdate/updateClient', true);
+if(is_dir($_SERVER['DOCUMENT_ROOT'] . '/webEdition/liveUpdate/updateClient')){
+	we_base_file::deleteLocalFolder($_SERVER['DOCUMENT_ROOT'] . '/webEdition/liveUpdate/updateClient', true);
 }
 
 /*
