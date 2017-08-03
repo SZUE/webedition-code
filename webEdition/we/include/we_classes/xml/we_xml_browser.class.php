@@ -57,7 +57,7 @@ class we_xml_browser extends we_xml_parser{
 		if(we_base_file::save($cache, we_serialize(array(
 				'encoding' => $this->mainXmlEncoding,
 				'nodes' => $this->nodes
-			)))){
+					), SERIALIZE_PHP, false, 6))){
 			we_base_file::insertIntoCleanUp($cache, $expire);
 		}
 	}
