@@ -34,9 +34,6 @@ while(' . $unq . '->next()){
 	}else{
 		 echo we_redirect_tagoutput(' . $unq . '->getFeedData(),\'' . $nameTo . '\',\'' . $to . '\');
 	}
-	//array_pop($GLOBALS["xstack"]);  //ausgeblendet wegen 6339 und beobachtetem Verhalten, das immer maximal zwei Sachen angeziegt wurden
-	// fix me
-	// wann kann man was aus dem Array löschen?
 }
 unset(' . $unq . ');?>';
 }
@@ -47,41 +44,41 @@ unset(' . $unq . ');?>';
  * @param string $content
  */
 function we_tag_xmlnode(array $attribs){
-	if(($foo = attributFehltError($attribs, "xpath", __FUNCTION__))){
+	if(($foo = attributFehltError($attribs, 'xpath', __FUNCTION__))){
 		echo $foo;
 		return false;
 	}
 	$feed = we_tag_getPostName(weTag_getAttribute('feed', $attribs, '', we_base_request::STRING));
 	$url = weTag_getAttribute('url', $attribs, '', we_base_request::URL);
 
-	if(!isset($GLOBALS["xpaths"])){
+	if(!isset($GLOBALS['xpaths'])){
 		$GLOBALS["xpaths"] = array();
 	}
-	if(!isset($GLOBALS["xstack"])){
+	if(!isset($GLOBALS['xstack'])){
 		$GLOBALS["xstack"] = array();
 	}
-	$pind_name = count($GLOBALS["xstack"]) - 1;
+	$pind_name = count($GLOBALS['xstack']) - 1;
 	if($pind_name < 0){
 		$pind_name = 0;
 		$parent_name = '';
 	} else {
-		$parent_name = $GLOBALS["xstack"][$pind_name];
+		$parent_name = $GLOBALS['xstack'][$pind_name];
 	}
 
 	$ind_name = count($GLOBALS['xpaths']) + 1;
-	$GLOBALS["xpaths"][$ind_name] = array(
-		'xpath' => $attribs["xpath"],
+	$GLOBALS['xpaths'][$ind_name] = array(
+		'xpath' => $attribs['xpath'],
 		'parent' => $parent_name
 	);
 
 	// find feed
 	if($url){
 		$feed_name = new we_xml_browser($url);
-		$GLOBALS["xpaths"][$ind_name]["url"] = $url;
+		$GLOBALS['xpaths'][$ind_name]['url'] = $url;
 		$got_name = true;
 	} elseif($feed){
-		$feed_name = $GLOBALS["xmlfeeds"][$feed];
-		$GLOBALS["xpaths"][$ind_name]["feed"] = $feed;
+		$feed_name = $GLOBALS['xmlfeeds'][$feed];
+		$GLOBALS['xpaths'][$ind_name]['feed'] = $feed;
 		$got_name = true;
 	} else {
 		$got_name = false;
@@ -89,16 +86,16 @@ function we_tag_xmlnode(array $attribs){
 
 		if(!empty($parent_name)){
 			for($c_name = $pind_name; $c_name > -1; $c_name--){
-				$otac_name = $GLOBALS["xstack"][$c_name];
-				if(isset($GLOBALS["xpaths"][$otac_name])){
-					if(isset($GLOBALS["xpaths"][$otac_name]["url"]) && !empty($GLOBALS["xpaths"][$otac_name]["url"])){
-						$feed_name = new we_xml_browser($GLOBALS["xpaths"][$otac_name]["url"]);
-						$GLOBALS["xpaths"][$ind_name]["url"] = $GLOBALS["xpaths"][$otac_name]["url"];
+				$otac_name = $GLOBALS['xstack'][$c_name];
+				if(isset($GLOBALS['xpaths'][$otac_name])){
+					if(!empty($GLOBALS['xpaths'][$otac_name]['url'])){
+						$feed_name = new we_xml_browser($GLOBALS['xpaths'][$otac_name]['url']);
+						$GLOBALS['xpaths'][$ind_name]["url"] = $GLOBALS['xpaths'][$otac_name]['url'];
 						$got_name = true;
 					}
-					if(isset($GLOBALS["xpaths"][$otac_name]["feed"]) && !empty($GLOBALS["xpaths"][$otac_name]["feed"])){
-						$feed_name = $GLOBALS["xmlfeeds"][$GLOBALS["xpaths"][$otac_name]["feed"]];
-						$GLOBALS["xpaths"][$ind_name]["feed"] = $GLOBALS["xpaths"][$otac_name]["feed"];
+					if(!empty($GLOBALS['xpaths'][$otac_name]['feed'])){
+						$feed_name = $GLOBALS['xmlfeeds'][$GLOBALS['xpaths'][$otac_name]['feed']];
+						$GLOBALS['xpaths'][$ind_name]['feed'] = $GLOBALS['xpaths'][$otac_name]['feed'];
 						$got_name = true;
 					}
 				}
@@ -107,20 +104,20 @@ function we_tag_xmlnode(array $attribs){
 	}
 	$nodes_name = array();
 	if($got_name){
-		if(isset($GLOBALS["xsuperparent"])){
-			$nodes_name = $feed_name->evaluate($GLOBALS["xsuperparent"] . "/" . $GLOBALS["xpaths"][$ind_name]["xpath"]);
+		if(isset($GLOBALS['xsuperparent'])){
+			$nodes_name = $feed_name->evaluate($GLOBALS['xsuperparent'] . '/' . $GLOBALS['xpaths'][$ind_name]['xpath']);
 		}
 		if(empty($nodes_name)){
-			$nodes_name = $feed_name->evaluate($GLOBALS["xpaths"][$ind_name]["xpath"]);
+			$nodes_name = $feed_name->evaluate($GLOBALS['xpaths'][$ind_name]['xpath']);
 		}
 		if(empty($nodes_name)){
 			if(!empty($parent_name)){
 				for($c_name = $pind_name; $c_name > -1; $c_name--){
-					$otac_name = $GLOBALS["xstack"][$c_name];
-					if(isset($GLOBALS["xpaths"][$otac_name])){
-						if(isset($GLOBALS["xpaths"][$otac_name]["xpath"]) && !empty($GLOBALS["xpaths"][$otac_name]["xpath"])){
-							$GLOBALS["xpaths"][$ind_name]["xpath"] = $GLOBALS["xpaths"][$otac_name]["xpath"] . "/" . $GLOBALS["xpaths"][$ind_name]["xpath"];
-							$nodes_name = $feed_name->evaluate($GLOBALS["xpaths"][$ind_name]["xpath"]);
+					$otac_name = $GLOBALS['xstack'][$c_name];
+					if(isset($GLOBALS['xpaths'][$otac_name])){
+						if(!empty($GLOBALS['xpaths'][$otac_name]['xpath'])){
+							$GLOBALS['xpaths'][$ind_name]['xpath'] = $GLOBALS['xpaths'][$otac_name]['xpath'] . '/' . $GLOBALS['xpaths'][$ind_name]['xpath'];
+							$nodes_name = $feed_name->evaluate($GLOBALS['xpaths'][$ind_name]['xpath']);
 						}
 					}
 				}
@@ -130,7 +127,7 @@ function we_tag_xmlnode(array $attribs){
 		$got_name = true;
 	}
 
-	$GLOBALS["xstack"][] = $ind_name; //war einfach ind_name und fehler undefinend konstant
+	$GLOBALS['xstack'][] = $ind_name; //war einfach ind_name und fehler undefinend konstant
 
 	return new _we_tag_xmlnode_struct($nodes_name, $feed_name);
 }
@@ -139,10 +136,14 @@ class _we_tag_xmlnode_struct{
 	private $nodes_name;
 	private $feed_name;
 	private $init = false;
+	private $xmlCharset = '';
+	private $docCharset = '';
 
 	function __construct($nodes_name, $feed_name){
 		$this->nodes_name = $nodes_name;
 		$this->feed_name = $feed_name;
+		$this->xmlCharset = $this->feed_name->mainXmlEncoding;
+		$this->docCharset = $GLOBALS['we_doc']->getElement('Charset', 'dat', DEFAULT_CHARSET);
 	}
 
 	function next(){
@@ -158,7 +159,12 @@ class _we_tag_xmlnode_struct{
 	}
 
 	function getFeedData(){
-		return $this->feed_name->getData(current($this->nodes_name));
+		$ret = $this->feed_name->getData(current($this->nodes_name));
+		return (
+			$this->docCharset === $this->xmlCharset ?
+				$ret :
+				mb_convert_encoding($ret, $this->docCharset, $this->xmlCharset)
+			);
 	}
 
 	function getNode(){
