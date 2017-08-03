@@ -230,6 +230,7 @@ class we_xml_parser{
 
 		// All done, clean up.
 		xml_parser_free($parser);
+		return true;
 	}
 
 	/**
