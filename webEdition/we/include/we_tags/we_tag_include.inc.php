@@ -24,12 +24,14 @@
  */
 function we_parse_tag_include($attribs, $c, array $attr){
 	$type = weTag_getParserAttribute('type', $attr, 'document');
+	$once = (weTag_getParserAttribute('once', $attr, false, true) ? '_once' : '');
 	if($type === 'template'){
 		$attr['_parsed'] = 'true';
 	}
+
 	return ($type === 'template' ?
-			'<?php if(($we_inc=' . we_tag_tagParser::printTag('include', $attr) . ')){include' . (weTag_getParserAttribute('once', $attr, false, true) ? '_once' : '') . '($we_inc);}; ?>' : //include templates of ID's
-			'<?php eval(' . we_tag_tagParser::printTag('include', $attribs) . ');?>' //include documents
+			'<?php if(($we_inc=' . we_tag_tagParser::printTag('include', $attr) . ')){include' . $once . '($we_inc);}; ?>' : //include templates of ID's
+			'<?php if(($we_inc=' . we_tag_tagParser::printTag('include', $attr) . ')){$we_unique = we_newBackVarID();we_setBackVar($we_unique);include' . $once . '($we_inc);};we_resetBackVar($we_unique);}?>' //include documents
 		);
 }
 
@@ -64,23 +66,6 @@ function we_setBackVar($we_unique){
 	if(isset($GLOBALS['postTagName'])){
 		unset($GLOBALS['postTagName']);
 	}
-}
-
-function we_resetBackVar($we_unique){
-	$GLOBALS['we_doc'] = clone($GLOBALS['we']['backVars'][$we_unique]['we_doc']);
-	foreach($GLOBALS['we']['backVars'][$we_unique]['GLOBAL'] as $key => $val){
-		$GLOBALS[$key] = $val;
-	}
-	foreach($GLOBALS['we']['backVars'][$we_unique]['REQUEST'] as $key => $val){
-		$_REQUEST[$key] = $val;
-	}
-
-	if($GLOBALS['we']['backVars'][$we_unique]['GLOBAL']['WE_IS_DYN']){
-		$GLOBALS['WE_IS_DYN'] = 1;
-	} else if(isset($GLOBALS['WE_IS_DYN'])){
-		unset($GLOBALS['WE_IS_DYN']);
-	}
-	unset($GLOBALS['we']['backVars'][$we_unique]);
 }
 
 function we_tag_include(array $attribs){//FIXME: include doesn't work in editmode - check funktionen
@@ -175,38 +160,34 @@ function we_tag_include(array $attribs){//FIXME: include doesn't work in editmod
 	$isSeemode = (we_tag('ifSeeMode'));
 	// check early if there is a document - if not the rest is never needed
 	if($gethttp){
-		$content = '$st=0;echo getHTTP(getServerUrl(true), \'' . $realPath . '\',$st);';
-	} else {
-		$realPath = WEBEDITION_PATH . '..' . $realPath; //(symlink) webEdition always points to the REAL DOC-Root!
-		if(!file_exists($realPath) || !is_file($realPath)){
-			//t_e('include of', 'id:' . $id . ',path:' . $path . ',name:' . $name, ' doesn\'t exist');
-			return '';
-		}
-		//check Customer-Filter on static documents
-		if(defined('CUSTOMER_TABLE') && $id){
-			$filter = we_customer_documentFilter::getFilterByIdAndTable($id, FILE_TABLE, $GLOBALS['DB_WE']);
+		$we_unique = we_newBackVarID();
+		we_setBackVar($we_unique);
+		$st = 0;
+		echo ($isSeemode && $seeMode && ($id || $path) ? we_gui_SEEM::getSeemAnchors(($id ? : path_to_id($path, FILE_TABLE, $GLOBALS['DB_WE'])), 'include') : '') .
+			getHTTP(getServerUrl(true), $realPath, $st);
+		we_resetBackVar($we_unique);
+		return '';
+	}
 
-			if(is_object($filter)){
-				if($filter->accessForVisitor($id, $ct, true) != we_customer_documentFilter::ACCESS){
-					return '';
-				}
+	$realPath = WEBEDITION_PATH . '..' . $realPath; //(symlink) webEdition always points to the REAL DOC-Root!
+	if(!file_exists($realPath) || !is_file($realPath)){
+		//t_e('include of', 'id:' . $id . ',path:' . $path . ',name:' . $name, ' doesn\'t exist');
+		return '';
+	}
+	//check Customer-Filter on static documents
+	if(defined('CUSTOMER_TABLE') && $id){
+		$filter = we_customer_documentFilter::getFilterByIdAndTable($id, FILE_TABLE, $GLOBALS['DB_WE']);
+
+		if(is_object($filter)){
+			if($filter->accessForVisitor($id, $ct, true) != we_customer_documentFilter::ACCESS){
+				return '';
 			}
 		}
-		$content = 'include' . ($once ? '_once' : '') . '(\'' . $realPath . '\');';
 	}
 
-	if(!empty($GLOBALS['we']['backVars'])){
-		end($GLOBALS['we']['backVars']);
-		$we_unique = key($GLOBALS['we']['backVars']) + 1;
-		$GLOBALS['we']['backVars'][$we_unique] = [];
-	} else {
-		$we_unique = 1;
-		$GLOBALS['we']['backVars'] = [$we_unique => []
-		];
+	if($isSeemode && $seeMode && ($id || $path)){
+		echo we_gui_SEEM::getSeemAnchors(($id ? : path_to_id($path, FILE_TABLE, $GLOBALS['DB_WE'])), 'include');
 	}
 
-	we_setBackVar($we_unique);
-	return $content .
-		($isSeemode && $seeMode && ($id || $path) ? 'echo \'' . we_gui_SEEM::getSeemAnchors(($id ? : path_to_id($path, FILE_TABLE, $GLOBALS['DB_WE'])), 'include') . '\';' : '') .
-		'we_resetBackVar(' . $we_unique . ');';
+	return $realPath;
 }

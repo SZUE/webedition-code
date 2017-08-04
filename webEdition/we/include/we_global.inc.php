@@ -742,6 +742,43 @@ function g_l($name, $specific, $omitErrors = false){
 	return false;
 }
 
+/**
+ * function of we:include
+ * @param type $we_unique
+ */
+function we_resetBackVar($we_unique){
+	$GLOBALS['we_doc'] = clone($GLOBALS['we']['backVars'][$we_unique]['we_doc']);
+	foreach($GLOBALS['we']['backVars'][$we_unique]['GLOBAL'] as $key => $val){
+		$GLOBALS[$key] = $val;
+	}
+	foreach($GLOBALS['we']['backVars'][$we_unique]['REQUEST'] as $key => $val){
+		$_REQUEST[$key] = $val;
+	}
+
+	if($GLOBALS['we']['backVars'][$we_unique]['GLOBAL']['WE_IS_DYN']){
+		$GLOBALS['WE_IS_DYN'] = 1;
+	} else if(isset($GLOBALS['WE_IS_DYN'])){
+		unset($GLOBALS['WE_IS_DYN']);
+	}
+	unset($GLOBALS['we']['backVars'][$we_unique]);
+}
+
+/**
+ * function of we:include
+ */
+function we_newBackVarID(){
+	if(!empty($GLOBALS['we']['backVars'])){
+		end($GLOBALS['we']['backVars']);
+		$we_unique = key($GLOBALS['we']['backVars']) + 1;
+		$GLOBALS['we']['backVars'][$we_unique] = [];
+	} else {
+		$we_unique = 1;
+		$GLOBALS['we']['backVars'] = [$we_unique => []
+		];
+	}
+	return $we_unique;
+}
+
 function we_templateInit(){
 	if(isset($GLOBALS['WE_TEMPLATE_INIT'])){
 		++$GLOBALS['WE_TEMPLATE_INIT'];

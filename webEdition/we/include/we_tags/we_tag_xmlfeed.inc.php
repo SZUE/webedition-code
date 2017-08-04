@@ -44,9 +44,9 @@ function we_tag_xmlfeed(array $attribs){
 	$GLOBALS['xmlfeeds'][$name] = new we_xml_browser();
 	$cache = WE_CACHE_PATH . 'xmlfeed_' . md5($url);
 
-	$do_refresh = (is_file($cache) && $refresh > 0 ? ((filemtime($cache) + $refresh) < time()) : true);
+	$do_refresh = ($refresh > 0 ? (!is_file($cache) || ((filemtime($cache) + $refresh) < time())) : true);
 
-	if(!is_file($cache) || $do_refresh){
+	if($do_refresh){
 		$ret = $GLOBALS['xmlfeeds'][$name]->getFile($url, $timeout);
 		if($ret){
 			$GLOBALS['xmlfeeds'][$name]->saveCache($cache, (2 * $refresh)); //keep file longer, in case of timeouts
