@@ -1111,6 +1111,7 @@ abstract class we_contents_root extends we_contents_base{
 			switch($v['type']){
 				case 'formfield':
 					//remove empty fields on serialize
+					unset($v['id'], $v['cid']);
 					$dat = we_serialize(array_filter($v), SERIALIZE_JSON);
 					break;
 				case 'date':

@@ -21,20 +21,20 @@
  * @package none
  * @license    http://www.gnu.org/copyleft/gpl.html  GPL
  */
-we_html_tools::protect(["BROWSE_SERVER"]);
+we_html_tools::protect(['BROWSE_SERVER']);
 $jsCmd = new we_base_jsCmd();
 
 $id = we_base_request::_(we_base_request::FILE, 'id');
-if(we_base_request::_(we_base_request::STRING, "cmd") === "save"){
-	if(($data = we_base_request::_(we_base_request::RAW_CHECKED, "editFile")) !== false){
+if(we_base_request::_(we_base_request::STRING, "cmd") === 'save'){
+	if(($data = we_base_request::_(we_base_request::RAW_CHECKED, 'editFile')) !== false){
 		we_base_file::save($id, $data);
 	}
-	$we_fileData = stripslashes(we_base_request::_(we_base_request::RAW_CHECKED, "editFile"));
+	$we_fileData = stripslashes(we_base_request::_(we_base_request::RAW_CHECKED, 'editFile'));
 } else if($id){
 	$id = str_replace('//', '/', $id);
 	$we_fileData = we_base_file::load($id);
 	if($we_fileData === false){
-		$jsCmd->addMsg(sprintf(g_l('alert', '[can_not_open_file]'), str_replace(str_replace("\\", "/", dirname($id)) . "/", "", $id), 1), we_base_util::WE_MESSAGE_ERROR);
+		$jsCmd->addMsg(sprintf(g_l('alert', '[can_not_open_file]'), str_replace(str_replace('\\', '/', dirname($id)) . '/', '', $id), 1), we_base_util::WE_MESSAGE_ERROR);
 		$jsCmd->addCmd('close');
 	}
 } else {
@@ -52,7 +52,7 @@ echo we_html_tools::getHtmlTop('', '', '', $jsCmd->getCmds() .
 		], '<div style="text-align:center">
 		<form method="post">
 			<input type="hidden" name="cmd" value="save" />' .
-		we_html_tools::htmlDialogLayout($content, g_l('global', '[edit_file]') . ': <span class="weMultiIconBoxHeadline">' . str_replace(str_replace("\\", "/", dirname($id)) . "/", "", $id), $buttons, 1) . '</span>
+		we_html_tools::htmlDialogLayout($content, g_l('global', '[edit_file]') . ': <span class="weMultiIconBoxHeadline">' . str_replace(str_replace('\\', '/', dirname($id)) . '/', '', $id), $buttons, 1) . '</span>
 		</form></div>'
 	)
 );

@@ -42,7 +42,7 @@ function we_tag_xmlfeed(array $attribs){
 	}
 
 	$GLOBALS['xmlfeeds'][$name] = new we_xml_browser();
-	$cache = WEBEDITION_PATH . 'xmlfeeds/' . $name;
+	$cache = WE_CACHE_PATH . 'xmlfeed_' . md5($url);
 
 	$do_refresh = (is_file($cache) && $refresh > 0 ? ((filemtime($cache) + $refresh) < time()) : true);
 

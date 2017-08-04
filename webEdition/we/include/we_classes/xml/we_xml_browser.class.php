@@ -54,7 +54,10 @@ class we_xml_browser extends we_xml_parser{
 		if(!is_dir(dirname($cache))){
 			we_base_file::createLocalFolderByPath(dirname($cache));
 		}
-		if(we_base_file::save($cache, we_serialize($this->nodes))){
+		if(we_base_file::save($cache, we_serialize(array(
+				'encoding' => $this->mainXmlEncoding,
+				'nodes' => $this->nodes
+					), SERIALIZE_PHP, false, 6))){
 			we_base_file::insertIntoCleanUp($cache, $expire);
 		}
 	}
@@ -65,7 +68,9 @@ class we_xml_browser extends we_xml_parser{
 		} else {
 			$this->cache = $cache;
 		}
-		$this->nodes = we_unserialize(we_base_file::load($cache));
+		$data = we_unserialize(we_base_file::load($cache));
+		$this->mainXmlEncoding = $data['encoding'];
+		$this->nodes = $data['nodes'];
 	}
 
 	function getNodeDataset($xpath = "*"){
