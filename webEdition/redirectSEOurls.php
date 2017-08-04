@@ -94,7 +94,7 @@ while($urlLookingFor){// first we try to get the object
 if($object && $object['ID']){
 	$docPathOfUrl = substr(WE_REDIRECTED_SEO, 0, strripos(WE_REDIRECTED_SEO, $urlLookingFor)); //cut the known seo-url from object of the whole URL
 	//get trigger document by url and/or (extra) workspaces by object properties
-	$triggerDocPath = we_objectFile::getNextDynDoc(($path = rtrim($docPathOfUrl, "/") . DEFAULT_DYNAMIC_EXT), path_to_id(rtrim($docPathOfUrl, "/")), $object['Workspaces'], $object['ExtraWorkspacesSelected'], $GLOBALS['DB_WE']);
+	$triggerDocPath = we_objectFile::getNextDynDoc(($path = rtrim($docPathOfUrl, '/') . DEFAULT_DYNAMIC_EXT), path_to_id(rtrim($docPathOfUrl, '/')), $object['Workspaces'], $object['ExtraWorkspacesSelected'], $GLOBALS['DB_WE']);
 
 	if(!$triggerDocPath){//fallback
 		if(NAVIGATION_DIRECTORYINDEX_NAMES){ //now we try to get trigger doc by the given SEO-URL and NAVIGATION_DIRECTORYINDEX_NAMES from preferences
@@ -132,7 +132,7 @@ if($object && $object['ID']){
 		$_REQUEST['we_objectID'] = $object['ID'];
 		$_REQUEST['we_oid'] = $object['ID'];
 
-		$_SERVER['SCRIPT_NAME'] = $_SERVER['SCRIPT_URL'] = $triggerDocPath;
+		$_SERVER['SCRIPT_FILENAME'] = $_SERVER['SCRIPT_NAME'] = $_SERVER['SCRIPT_URL'] = $triggerDocPath;
 
 		we_html_tools::setHttpCode(200);
 		include(WEBEDITION_PATH . '../' . getScriptName());

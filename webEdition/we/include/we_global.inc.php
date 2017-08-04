@@ -1235,6 +1235,7 @@ function updateAvailable(){
 	return false;
 }
 
-function getScriptName(){
-	return isset($_SERVER['SCRIPT_FILENAME']) ? str_replace(rtrim($_SERVER['DOCUMENT_ROOT'], '/') . '/', '', $_SERVER['SCRIPT_FILENAME']) : $_SERVER['SCRIPT_NAME'];
+function getScriptName($param = false){
+	return (isset($_SERVER['SCRIPT_FILENAME']) ? str_replace(rtrim($_SERVER['DOCUMENT_ROOT'], '/'), '', $_SERVER['SCRIPT_FILENAME']) : $_SERVER['SCRIPT_NAME']) .
+		($param && !empty($_SERVER['QUERY_STRING']) ? '?' . $_SERVER['QUERY_STRING'] : '');
 }
