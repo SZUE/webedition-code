@@ -1009,11 +1009,9 @@ var tinyMceConfObject__' . $this->fieldName_clean . ' = {
 	plugin_preview_height : "300",
 	plugin_preview_width : "500",
 	theme_advanced_disable : "",
-
-	extended_valid_elements: "we-gallery[id|tmpl|class]",
 	custom_elements: "we-gallery",
 	visual: true,
-	extended_valid_elements : "@[we-tiny]",
+	extended_valid_elements : "@[we-tiny],we-gallery[id|tmpl|class]",
 	//paste_text_use_dialog: true,
 	//fullscreen_new_window: true,
 	editor_css: "' . we_html_element::getUnCache(CSS_DIR . 'wysiwyg/tinymce/editorCss.css') . '",

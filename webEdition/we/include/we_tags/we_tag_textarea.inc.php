@@ -57,7 +57,7 @@ function we_tag_textarea(array $attribs, $content){
 
 	$gallery = false;
 	/* we are in wysiwyg and have at least one we-gallery */
-	$splitVal = preg_split('&(<we-gallery)([^>]*)></we-gallery>&i', $fieldVal, -1, PREG_SPLIT_DELIM_CAPTURE);
+	$splitVal = preg_split('&(<we-gallery)([^>]*)>[^<]*</we-gallery>&i', $fieldVal, -1, PREG_SPLIT_DELIM_CAPTURE);
 	ob_start();
 	foreach($splitVal as $split){
 		if($split === '<we-gallery'){
